@@ -993,8 +993,10 @@ GameMenuRoutine:
 	beq StartGame
 	cmp #A_Button+Start_Button	;check to see if A + start was pressed
 	bne ChkSelect	;if not, branch to check select button
-StartGame:	jmp ChkContinue	;if either start or A + start, execute here
-ChkSelect:	cmp #Select_Button	;check to see if the select button was pressed
+StartGame:
+	jmp ChkContinue	;if either start or A + start, execute here
+ChkSelect:
+	cmp #Select_Button	;check to see if the select button was pressed
 	beq SelectBLogic	;if so, branch reset demo timer
 	ldx DemoTimer	;otherwise check demo timer
 	bne ChkWorldSel	;if demo timer not expired, branch to check world selection
@@ -1002,12 +1004,14 @@ ChkSelect:	cmp #Select_Button	;check to see if the select button was pressed
 	jsr DemoEngine	;run through the demo actions
 	bcs ResetTitle	;if carry flag set, demo over, thus branch
 	jmp RunDemo	;otherwise, run game engine for demo
-ChkWorldSel:  ldx WorldSelectEnableFlag	;check to see if world selection has been enabled
+ChkWorldSel:
+	ldx WorldSelectEnableFlag	;check to see if world selection has been enabled
 	beq NullJoypad
 	cmp #B_Button	;if so, check to see if the B button was pressed
 	bne NullJoypad
 	iny		;if so, increment Y and execute same code as select
-SelectBLogic: lda DemoTimer	;if select or B pressed, check demo timer one last time
+SelectBLogic:
+	lda DemoTimer	;if select or B pressed, check demo timer one last time
 	beq ResetTitle	;if demo timer expired, branch to reset title screen mode
 	lda #$18	;otherwise reset demo timer
 	sta DemoTimer
@@ -1022,13 +1026,15 @@ SelectBLogic: lda DemoTimer	;if select or B pressed, check demo timer one last t
 	sta NumberOfPlayers
 	jsr DrawMushroomIcon
 	jmp NullJoypad
-IncWorldSel:  ldx WorldSelectNumber	;increment world select number
+IncWorldSel:
+	ldx WorldSelectNumber	;increment world select number
 	inx
 	txa
 	and #%00000111	;mask out higher bits
 	sta WorldSelectNumber	;store as current world select number
 	jsr GoContinue
-UpdateShroom: lda WSelectBufferTemplate,x ;write template for world select in vram buffer
+UpdateShroom:
+	lda WSelectBufferTemplate,x ;write template for world select in vram buffer
 	sta VRAM_Buffer1-1,x	;do this until all bytes are written
 	inx
 	cpx #$06
@@ -1036,25 +1042,30 @@ UpdateShroom: lda WSelectBufferTemplate,x ;write template for world select in vr
 	ldy WorldNumber	;get world number from variable and increment for
 	iny		;proper display, and put in blank byte before
 	sty VRAM_Buffer1+3	;null terminator
-NullJoypad:	lda #$00	;clear joypad bits for player 1
+NullJoypad:
+	lda #$00	;clear joypad bits for player 1
 	sta SavedJoypad1Bits
-RunDemo:	jsr GameCoreRoutine	;run game engine
+RunDemo:
+	jsr GameCoreRoutine	;run game engine
 	lda GameEngineSubroutine	;check to see if we're running lose life routine
 	cmp #$06
 	bne ExitMenu	;if not, do not do all the resetting below
-ResetTitle:	lda #$00	;reset game modes, disable
+ResetTitle:
+	lda #$00	;reset game modes, disable
 	sta OperMode	;sprite 0 check and disable
 	sta OperMode_Task	;screen output
 	sta Sprite0HitDetectFlag
 	inc DisableScreenFlag
 	rts
-ChkContinue:  ldy DemoTimer	;if timer for demo has expired, reset modes
+ChkContinue:
+	ldy DemoTimer	;if timer for demo has expired, reset modes
 	beq ResetTitle
 	asl		;check to see if A button was also pushed
 	bcc StartWorld1	;if not, don't load continue function's world number
 	lda ContinueWorld	;load previously saved world number for secret
 	jsr GoContinue	;continue function when pressing A + start
-StartWorld1:  jsr LoadAreaPointer
+StartWorld1:
+	jsr LoadAreaPointer
 	inc Hidden1UpFlag	;set 1-up box flag for both players
 	inc OffScr_Hidden1UpFlag
 	inc FetchNewGameTimerFlag	;set fetch new game timer flag
@@ -1066,17 +1077,19 @@ StartWorld1:  jsr LoadAreaPointer
 	sta DemoTimer
 	ldx #$17
 	lda #$00
-InitScores:	sta ScoreAndCoinDisplay,x	;clear player scores and coin displays
+InitScores:
+	sta ScoreAndCoinDisplay,x	;clear player scores and coin displays
 	dex
 	bpl InitScores
-ExitMenu:	rts
-GoContinue:	sta WorldNumber	;start both players at the first area
+ExitMenu:
+	rts
+GoContinue:
+	sta WorldNumber	;start both players at the first area
 	sta OffScr_WorldNumber	;of the previously saved world number
 	ldx #$00	;note that on power-up using this function
 	stx AreaNumber	;will make no difference
 	stx OffScr_AreaNumber
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 MushroomIconData:
@@ -1084,7 +1097,8 @@ MushroomIconData:
 
 DrawMushroomIcon:
 	ldy #$07	;read eight bytes to be read by transfer routine
-IconDataRead: lda MushroomIconData,y  ;note that the default position is set for a
+IconDataRead:
+	lda MushroomIconData,y  ;note that the default position is set for a
 	sta VRAM_Buffer1-1,y	;1-player game
 	dey
 	bpl IconDataRead
@@ -1094,8 +1108,8 @@ IconDataRead: lda MushroomIconData,y  ;note that the default position is set for
 	sta VRAM_Buffer1+3
 	lda #$ce	;then load shroom icon tile in 2-player position
 	sta VRAM_Buffer1+5
-ExitIcon:	rts
-
+ExitIcon:
+	rts
 ;-------------------------------------------------------------------------------------
 
 DemoActionData:
@@ -1118,12 +1132,13 @@ DemoEngine:
 	lda DemoTimingData-1,x ;get next timer
 	sta DemoActionTimer	;store as current timer
 	beq DemoOver	;if timer already at zero, skip
-DoAction: lda DemoActionData-1,x ;get and perform action (current or next)
+DoAction:
+	lda DemoActionData-1,x ;get and perform action (current or next)
 	sta SavedJoypad1Bits
 	dec DemoActionTimer	;decrement action timer
 	clc	;clear carry if demo still going
-DemoOver: rts
-
+DemoOver:
+	rts
 ;-------------------------------------------------------------------------------------
 
 VictoryMode:
@@ -1133,7 +1148,8 @@ VictoryMode:
 	ldx #$00
 	stx ObjectOffset	;otherwise reset enemy object offset
 	jsr EnemiesAndLoopsCore	;and run enemy code
-AutoPlayer: jsr RelativePlayerPosition	;get player's relative coordinates
+AutoPlayer:
+	jsr RelativePlayerPosition	;get player's relative coordinates
 	jmp PlayerGfxHandler	;draw the player, then leave
 
 VictoryModeSubroutines:
@@ -1145,7 +1161,6 @@ VictoryModeSubroutines:
 	dw PlayerVictoryWalk
 	dw PrintVictoryMessages
 	dw PlayerEndWorld
-
 ;-------------------------------------------------------------------------------------
 
 SetupVictoryMode:
@@ -1155,7 +1170,6 @@ SetupVictoryMode:
 	lda #EndOfCastleMusic
 	sta EventMusicQueue	;play win castle music
 	jmp IncModeTask_B	;jump to set next major task in victory mode
-
 ;-------------------------------------------------------------------------------------
 
 PlayerVictoryWalk:
@@ -1167,9 +1181,11 @@ PlayerVictoryWalk:
 	lda Player_X_Position	;otherwise get player's horizontal position
 	cmp #$60	;compare with preset horizontal position
 	bcs DontWalk	;if still on other page, branch ahead
-PerformWalk: inc VictoryWalkControl	;otherwise increment value and Y
+PerformWalk:
+	inc VictoryWalkControl	;otherwise increment value and Y
 	iny	;note Y will be used to walk the player
-DontWalk:	tya	;put contents of Y in A and
+DontWalk:
+	tya	;put contents of Y in A and
 	jsr AutoControlPlayer	;use A to move player to the right or not
 	lda ScreenLeft_PageLoc	;check page location of left side of screen
 	cmp DestinationPageLoc	;against set value here
@@ -1184,10 +1200,10 @@ DontWalk:	tya	;put contents of Y in A and
 	jsr ScrollScreen	;do sub to scroll the screen
 	jsr UpdScrollVar	;do another sub to update screen and scroll variables
 	inc VictoryWalkControl	;increment value to stay in this routine
-ExitVWalk:	lda VictoryWalkControl	;load value set here
+ExitVWalk:
+	lda VictoryWalkControl	;load value set here
 	beq IncModeTask_A	;if zero, branch to change modes
 	rts	;otherwise leave
-
 ;-------------------------------------------------------------------------------------
 
 PrintVictoryMessages:
@@ -1204,15 +1220,18 @@ PrintVictoryMessages:
 	bcc IncMsgCounter	;if not at 3 yet (world 8 only), branch to increment
 	sbc #$01	;otherwise subtract one
 	jmp ThankPlayer	;and skip to next part
-MRetainerMsg:  cmp #$02	;check primary message counter
+MRetainerMsg:
+	cmp #$02	;check primary message counter
 	bcc IncMsgCounter	;if not at 2 yet (world 1-7 only), branch
-ThankPlayer:   tay	;put primary message counter into Y
+ThankPlayer:
+	tay	;put primary message counter into Y
 	bne SecondPartMsg	;if counter nonzero, skip this part, do not print first message
 	lda CurrentPlayer	;otherwise get player currently on the screen
 	beq EvalForMusic	;if mario, branch
 	iny	;otherwise increment Y once for luigi and
 	bne EvalForMusic	;do an unconditional branch to the same place
-SecondPartMsg: iny	;increment Y to do world 8's message
+SecondPartMsg:
+	iny	;increment Y to do world 8's message
 	lda WorldNumber
 	cmp #World8	;check world number
 	beq EvalForMusic	;if at world 8, branch to next part
@@ -1221,15 +1240,18 @@ SecondPartMsg: iny	;increment Y to do world 8's message
 	bcs SetEndTimer	;branch to set victory end timer
 	cpy #$03	;if counter at 3 (world 1-7 only)
 	bcs IncMsgCounter	;branch to keep counting
-EvalForMusic:  cpy #$03	;if counter not yet at 3 (world 8 only), branch
+EvalForMusic:
+	cpy #$03	;if counter not yet at 3 (world 8 only), branch
 	bne PrintMsg	;to print message only (note world 1-7 will only
 	lda #VictoryMusic	;reach this code if counter = 0, and will always branch)
 	sta EventMusicQueue	;otherwise load victory music first (world 8 only)
-PrintMsg:	tya	;put primary message counter in A
+PrintMsg:
+	tya	;put primary message counter in A
 	clc	;add $0c or 12 to counter thus giving an appropriate value,
 	adc #$0c	;($0c-$0d = first), ($0e = world 1-7's), ($0f-$12 = world 8's)
 	sta VRAM_Buffer_AddrCtrl	;write message counter to vram address controller
-IncMsgCounter: lda SecondaryMsgCounter
+IncMsgCounter:
+	lda SecondaryMsgCounter
 	clc
 	adc #$04	;add four to secondary message counter
 	sta SecondaryMsgCounter
@@ -1237,12 +1259,14 @@ IncMsgCounter: lda SecondaryMsgCounter
 	adc #$00	;add carry to primary message counter
 	sta PrimaryMsgCounter
 	cmp #$07	;check primary counter one more time
-SetEndTimer:   bcc ExitMsgs	;if not reached value yet, branch to leave
+SetEndTimer:
+	bcc ExitMsgs	;if not reached value yet, branch to leave
 	lda #$06
 	sta WorldEndTimer	;otherwise set world end timer
-IncModeTask_A: inc OperMode_Task	;move onto next task in mode
-ExitMsgs:	rts	;leave
-
+IncModeTask_A:
+	inc OperMode_Task	;move onto next task in mode
+ExitMsgs:
+	rts	;leave
 ;-------------------------------------------------------------------------------------
 
 PlayerEndWorld:
@@ -1260,8 +1284,10 @@ PlayerEndWorld:
 	inc FetchNewGameTimerFlag	;set flag to load game timer from header
 	lda #GameModeValue
 	sta OperMode	;set mode of operation to game mode
-EndExitOne:	rts	;and leave
-EndChkBButton: lda SavedJoypad1Bits
+EndExitOne:
+	rts	;and leave
+EndChkBButton:
+	lda SavedJoypad1Bits
 	ora SavedJoypad2Bits	;check to see if B button was pressed on
 	and #B_Button	;either controller
 	beq EndExitTwo	;branch to leave if not
@@ -1270,8 +1296,8 @@ EndChkBButton: lda SavedJoypad1Bits
 	lda #$ff	;remove onscreen player's lives
 	sta NumberofLives
 	jsr TerminateGame	;do sub to continue other player or end game
-EndExitTwo:	rts	;leave
-
+EndExitTwo:
+	rts	;leave
 ;-------------------------------------------------------------------------------------
 
 ;data is used as tiles for numbers
@@ -1304,12 +1330,14 @@ FloateyNumbersRoutine:
 	bcc ChkNumTimer
 	lda #$0b	;otherwise set to $0b, thus keeping
 	sta FloateyNum_Control,x	;it in range
-ChkNumTimer:  tay	;use as Y
+ChkNumTimer:
+	tay	;use as Y
 	lda FloateyNum_Timer,x	;check value here
 	bne DecNumTimer	;if nonzero, branch ahead
 	sta FloateyNum_Control,x	;initialize floatey number control and leave
 	rts
-DecNumTimer:  dec FloateyNum_Timer,x	;decrement value here
+DecNumTimer:
+	dec FloateyNum_Timer,x	;decrement value here
 	cmp #$2b	;if not reached a certain point, branch
 	bne ChkTallEnemy
 	cpy #$0b	;check offset for $0b
@@ -1317,7 +1345,8 @@ DecNumTimer:  dec FloateyNum_Timer,x	;decrement value here
 	inc NumberofLives	;give player one extra life (1-up)
 	lda #Sfx_ExtraLife
 	sta Square2SoundQueue	;and play the 1-up sound
-LoadNumTiles: lda ScoreUpdateData,y	;load point value here
+LoadNumTiles:
+	lda ScoreUpdateData,y	;load point value here
 	lsr	;move high nybble to low
 	lsr
 	lsr
@@ -1327,7 +1356,8 @@ LoadNumTiles: lda ScoreUpdateData,y	;load point value here
 	and #%00001111	;mask out the high nybble
 	sta DigitModifier,x	;store as amount to add to the digit
 	jsr AddToScore	;update the score accordingly
-ChkTallEnemy: ldy Enemy_SprDataOffset,x	;get OAM data offset for enemy object
+ChkTallEnemy:
+	ldy Enemy_SprDataOffset,x	;get OAM data offset for enemy object
 	lda Enemy_ID,x	;get enemy object identifier
 	cmp #Spiny
 	beq FloateyPart	;branch if spiny
@@ -1344,15 +1374,18 @@ ChkTallEnemy: ldy Enemy_SprDataOffset,x	;get OAM data offset for enemy object
 	lda Enemy_State,x
 	cmp #$02	;if enemy state defeated or otherwise
 	bcs FloateyPart	;$02 or greater, branch beyond this part
-GetAltOffset: ldx SprDataOffset_Ctrl	;load some kind of control bit
+GetAltOffset:
+	ldx SprDataOffset_Ctrl	;load some kind of control bit
 	ldy Alt_SprDataOffset,x	;get alternate OAM data offset
 	ldx ObjectOffset	;get enemy object offset again
-FloateyPart:  lda FloateyNum_Y_Pos,x	;get vertical coordinate for
+FloateyPart:
+	lda FloateyNum_Y_Pos,x	;get vertical coordinate for
 	cmp #$18	;floatey number, if coordinate in the
 	bcc SetupNumSpr	;status bar, branch
 	sbc #$01
 	sta FloateyNum_Y_Pos,x	;otherwise subtract one and store as new
-SetupNumSpr:  lda FloateyNum_Y_Pos,x	;get vertical coordinate
+SetupNumSpr:
+	lda FloateyNum_Y_Pos,x	;get vertical coordinate
 	sbc #$08	;subtract eight and dump into the
 	jsr DumpTwoSpr	;left and right sprite's Y coordinates
 	lda FloateyNum_X_Pos,x	;get horizontal coordinate
@@ -1372,7 +1405,6 @@ SetupNumSpr:  lda FloateyNum_Y_Pos,x	;get vertical coordinate
 	sta Sprite_Tilenumber+4,y	;display the second half
 	ldx ObjectOffset	;get enemy object offset and leave
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 ScreenRoutines:
@@ -1394,7 +1426,6 @@ ScreenRoutines:
 	dw DrawTitleScreen
 	dw ClearBuffersDrawIcon
 	dw WriteTopScore
-
 ;-------------------------------------------------------------------------------------
 
 InitScreen:
@@ -1404,7 +1435,6 @@ InitScreen:
 	beq NextSubtask	;if mode still 0, do not load
 	ldx #$03	;into buffer pointer
 	jmp SetVRAMAddr_A
-
 ;-------------------------------------------------------------------------------------
 
 SetupIntermediate:
@@ -1422,7 +1452,6 @@ SetupIntermediate:
 	pla	;and once we're done, we return bg
 	sta BackgroundColorCtrl  ;color ctrl and player status from stack
 	jmp IncSubtask	;then move onto the next task
-
 ;-------------------------------------------------------------------------------------
 
 AreaPalette:
@@ -1431,9 +1460,10 @@ AreaPalette:
 GetAreaPalette:
 	ldy AreaType	;select appropriate palette to load
 	ldx AreaPalette,y	;based on area type
-SetVRAMAddr_A: stx VRAM_Buffer_AddrCtrl ;store offset into buffer control
-NextSubtask:   jmp IncSubtask	;move onto next task
-
+SetVRAMAddr_A:
+	stx VRAM_Buffer_AddrCtrl ;store offset into buffer control
+NextSubtask:
+	jmp IncSubtask	;move onto next task
 ;-------------------------------------------------------------------------------------
 ;$00 - used as temp counter in GetPlayerColors
 
@@ -1454,7 +1484,8 @@ GetBackgroundColor:
 	beq NoBGColor	;if not set, increment task and fetch palette
 	lda BGColorCtrl_Addr-4,y	;put appropriate palette into vram
 	sta VRAM_Buffer_AddrCtrl	;note that if set to 5-7, $0301 will not be read
-NoBGColor: inc ScreenRoutineTask	;increment to next subtask and plod on through
+NoBGColor:
+	inc ScreenRoutineTask	;increment to next subtask and plod on through
 
 GetPlayerColors:
 	ldx VRAM_Buffer1_Offset  ;get current buffer offset
@@ -1462,13 +1493,16 @@ GetPlayerColors:
 	lda CurrentPlayer	;check which player is on the screen
 	beq ChkFiery
 	ldy #$04	;load offset for luigi
-ChkFiery:	lda PlayerStatus	;check player status
+ChkFiery:
+	lda PlayerStatus	;check player status
 	cmp #$02
 	bne StartClrGet	;if fiery, load alternate offset for fiery player
 	ldy #$08
-StartClrGet:   lda #$03	;do four colors
+StartClrGet:
+	lda #$03	;do four colors
 	sta $00
-ClrGetLoop:	lda PlayerColors,y	;fetch player colors and store them
+ClrGetLoop:
+	lda PlayerColors,y	;fetch player colors and store them
 	sta VRAM_Buffer1+3,x	;in the buffer
 	iny
 	inx
@@ -1478,7 +1512,8 @@ ClrGetLoop:	lda PlayerColors,y	;fetch player colors and store them
 	ldy BackgroundColorCtrl  ;if this value is four or greater, it will be set
 	bne SetBGColor	;therefore use it as offset to background color
 	ldy AreaType	;otherwise use area type bits from area offset as offset
-SetBGColor:	lda BackgroundColors,y	;to background color instead
+SetBGColor:
+	lda BackgroundColors,y	;to background color instead
 	sta VRAM_Buffer1+3,x
 	lda #$3f	;set for sprite palette address
 	sta VRAM_Buffer1,x	;save to buffer
@@ -1491,9 +1526,9 @@ SetBGColor:	lda BackgroundColors,y	;to background color instead
 	txa	;move the buffer pointer ahead 7 bytes
 	clc	;in case we want to write anything else later
 	adc #$07
-SetVRAMOffset: sta VRAM_Buffer1_Offset	;store as new vram buffer offset
+SetVRAMOffset:
+	sta VRAM_Buffer1_Offset	;store as new vram buffer offset
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 GetAlternatePalette1:
@@ -1501,16 +1536,16 @@ GetAlternatePalette1:
 	cmp #$01
 	bne NoAltPal
 	lda #$0b	;if found, load appropriate palette
-SetVRAMAddr_B: sta VRAM_Buffer_AddrCtrl
-NoAltPal:	jmp IncSubtask	;now onto the next task
-
+SetVRAMAddr_B:
+	sta VRAM_Buffer_AddrCtrl
+NoAltPal:
+	jmp IncSubtask	;now onto the next task
 ;-------------------------------------------------------------------------------------
 
 WriteTopStatusLine:
 	lda #$00	;select main status bar
 	jsr WriteGameText ;output it
 	jmp IncSubtask	;onto the next task
-
 ;-------------------------------------------------------------------------------------
 
 WriteBottomStatusLine:
@@ -1539,7 +1574,6 @@ WriteBottomStatusLine:
 	adc #$06
 	sta VRAM_Buffer1_Offset
 	jmp IncSubtask
-
 ;-------------------------------------------------------------------------------------
 
 DisplayTimeUp:
@@ -1549,9 +1583,9 @@ DisplayTimeUp:
 	sta GameTimerExpiredFlag	;reset timer expiration flag
 	lda #$02	;output time-up screen to buffer
 	jmp OutputInter
-NoTimeUp: inc ScreenRoutineTask	;increment control task 2 tasks forward
+NoTimeUp:
+	inc ScreenRoutineTask	;increment control task 2 tasks forward
 	jmp IncSubtask
-
 ;-------------------------------------------------------------------------------------
 
 DisplayIntermediate:
@@ -1566,36 +1600,40 @@ DisplayIntermediate:
 	beq PlayerInter
 	lda DisableIntermediate	;if this flag is set, skip intermediate lives display
 	bne NoInter	;and jump to specific task, otherwise
-PlayerInter:   jsr DrawPlayer_Intermediate	;put player in appropriate place for
+PlayerInter:
+	jsr DrawPlayer_Intermediate	;put player in appropriate place for
 	lda #$01	;lives display, then output lives display to buffer
-OutputInter:   jsr WriteGameText
+OutputInter:
+	jsr WriteGameText
 	jsr ResetScreenTimer
 	lda #$00
 	sta DisableScreenFlag	;reenable screen output
 	rts
-GameOverInter: lda #$12	;set screen timer
+GameOverInter:
+	lda #$12	;set screen timer
 	sta ScreenTimer
 	lda #$03	;output game over screen to buffer
 	jsr WriteGameText
 	jmp IncModeTask_B
-NoInter:	lda #$08	;set for specific task and leave
+NoInter:
+	lda #$08	;set for specific task and leave
 	sta ScreenRoutineTask
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 AreaParserTaskControl:
 	inc DisableScreenFlag	;turn off screen
-TaskLoop:  jsr AreaParserTaskHandler ;render column set of current area
+TaskLoop:
+	jsr AreaParserTaskHandler ;render column set of current area
 	lda AreaParserTaskNum	;check number of tasks
 	bne TaskLoop	;if tasks still not all done, do another one
 	dec ColumnSets	;do we need to render more column sets?
 	bpl OutputCol
 	inc ScreenRoutineTask	;if not, move on to the next task
-OutputCol: lda #$06	;set vram buffer to output rendered column set
+OutputCol:
+	lda #$06	;set vram buffer to output rendered column set
 	sta VRAM_Buffer_AddrCtrl	;on next NMI
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 ;$00 - vram buffer address table low
@@ -1613,100 +1651,102 @@ DrawTitleScreen:
 	ldy #$00
 	sty $00
 	lda PPU_DATA	;do one garbage read
-OutputTScr: lda PPU_DATA	;get title screen from chr-rom
+OutputTScr:
+	lda PPU_DATA	;get title screen from chr-rom
 	sta ($00),y	;store 256 bytes into buffer
 	iny
 	bne ChkHiByte	;if not past 256 bytes, do not increment
 	inc $01	;otherwise increment high byte of indirect
-ChkHiByte:	lda $01	;check high byte?
+ChkHiByte:
+	lda $01	;check high byte?
 	cmp #$04	;at $0400?
 	bne OutputTScr	;if not, loop back and do another
 	cpy #$3a	;check if offset points past end of data
 	bcc OutputTScr	;if not, loop back and do another
 	lda #$05	;set buffer transfer control to $0300,
 	jmp SetVRAMAddr_B	;increment task and exit
-
 ;-------------------------------------------------------------------------------------
 
 ClearBuffersDrawIcon:
 	lda OperMode	;check game mode
 	bne IncModeTask_B	;if not title screen mode, leave
 	ldx #$00	;otherwise, clear buffer space
-TScrClear:	sta VRAM_Buffer1-1,x
+TScrClear:
+	sta VRAM_Buffer1-1,x
 	sta VRAM_Buffer1-1+$100,x
 	dex
 	bne TScrClear
 	jsr DrawMushroomIcon	;draw player select icon
-IncSubtask:	inc ScreenRoutineTask	;move onto next task
+IncSubtask:
+	inc ScreenRoutineTask	;move onto next task
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 WriteTopScore:
 	lda #$fa	;run display routine to display top score on title
 	jsr UpdateNumber
-IncModeTask_B: inc OperMode_Task  ;move onto next mode
+IncModeTask_B:
+	inc OperMode_Task  ;move onto next mode
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 GameText:
 TopStatusBarLine:
-  db $20, $43, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
-  db $20, $52, $0b, $20, $18, $1b, $15, $0d ; "WORLD  TIME"
-  db $24, $24, $1d, $12, $16, $0e
-  db $20, $68, $05, $00, $24, $24, $2e, $29 ; score trailing digit and coin display
-  db $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
-  db $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
-  db $ff ; end of data block
+	db $20, $43, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
+	db $20, $52, $0b, $20, $18, $1b, $15, $0d ; "WORLD  TIME"
+	db $24, $24, $1d, $12, $16, $0e
+	db $20, $68, $05, $00, $24, $24, $2e, $29 ; score trailing digit and coin display
+	db $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
+	db $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
+	db $ff ; end of data block
 
 WorldLivesDisplay:
-  db $21, $cd, $07, $24, $24 ; cross with spaces used on
-  db $29, $24, $24, $24, $24 ; lives display
-  db $21, $4b, $09, $20, $18 ; "WORLD  - " used on lives display
-  db $1b, $15, $0d, $24, $24, $28, $24
-  db $22, $0c, $47, $24 ; possibly used to clear time up
-  db $23, $dc, $01, $ba ; attribute table data for crown if more than 9 lives
-  db $ff
+	db $21, $cd, $07, $24, $24 ; cross with spaces used on
+	db $29, $24, $24, $24, $24 ; lives display
+	db $21, $4b, $09, $20, $18 ; "WORLD  - " used on lives display
+	db $1b, $15, $0d, $24, $24, $28, $24
+	db $22, $0c, $47, $24 ; possibly used to clear time up
+	db $23, $dc, $01, $ba ; attribute table data for crown if more than 9 lives
+	db $ff
 
 TwoPlayerTimeUp:
-  db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
+	db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
 OnePlayerTimeUp:
-  db $22, $0c, $07, $1d, $12, $16, $0e, $24, $1e, $19 ; "TIME UP"
-  db $ff
+	db $22, $0c, $07, $1d, $12, $16, $0e, $24, $1e, $19 ; "TIME UP"
+	db $ff
 
 TwoPlayerGameOver:
-  db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
+	db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
 OnePlayerGameOver:
-  db $22, $0b, $09, $10, $0a, $16, $0e, $24 ; "GAME OVER"
-  db $18, $1f, $0e, $1b
-  db $ff
+	db $22, $0b, $09, $10, $0a, $16, $0e, $24 ; "GAME OVER"
+	db $18, $1f, $0e, $1b
+	db $ff
 
 WarpZoneWelcome:
-  db $25, $84, $15, $20, $0e, $15, $0c, $18, $16 ; "WELCOME TO WARP ZONE!"
-  db $0e, $24, $1d, $18, $24, $20, $0a, $1b, $19
-  db $24, $23, $18, $17, $0e, $2b
-  db $26, $25, $01, $24	; placeholder for left pipe
-  db $26, $2d, $01, $24	; placeholder for middle pipe
-  db $26, $35, $01, $24	; placeholder for right pipe
-  db $27, $d9, $46, $aa	; attribute data
-  db $27, $e1, $45, $aa
-  db $ff
+	db $25, $84, $15, $20, $0e, $15, $0c, $18, $16 ; "WELCOME TO WARP ZONE!"
+	db $0e, $24, $1d, $18, $24, $20, $0a, $1b, $19
+	db $24, $23, $18, $17, $0e, $2b
+	db $26, $25, $01, $24	; placeholder for left pipe
+	db $26, $2d, $01, $24	; placeholder for middle pipe
+	db $26, $35, $01, $24	; placeholder for right pipe
+	db $27, $d9, $46, $aa	; attribute data
+	db $27, $e1, $45, $aa
+	db $ff
 
 LuigiName:
-  db $15, $1e, $12, $10, $12	; "LUIGI", no address or length
+	db $15, $1e, $12, $10, $12	; "LUIGI", no address or length
 
 WarpZoneNumbers:
-  db $04, $03, $02, $00	; warp zone numbers, note spaces on middle
-  db $24, $05, $24, $00	; zone, partly responsible for
-  db $08, $07, $06, $00	; the minus world
+	db $04, $03, $02, $00	; warp zone numbers, note spaces on middle
+	db $24, $05, $24, $00	; zone, partly responsible for
+	db $08, $07, $06, $00	; the minus world
 
 GameTextOffsets:
-  db TopStatusBarLine-GameText, TopStatusBarLine-GameText
-  db WorldLivesDisplay-GameText, WorldLivesDisplay-GameText
-  db TwoPlayerTimeUp-GameText, OnePlayerTimeUp-GameText
-  db TwoPlayerGameOver-GameText, OnePlayerGameOver-GameText
-  db WarpZoneWelcome-GameText, WarpZoneWelcome-GameText
+	db TopStatusBarLine-GameText, TopStatusBarLine-GameText
+	db WorldLivesDisplay-GameText, WorldLivesDisplay-GameText
+	db TwoPlayerTimeUp-GameText, OnePlayerTimeUp-GameText
+	db TwoPlayerGameOver-GameText, OnePlayerGameOver-GameText
+	db WarpZoneWelcome-GameText, WarpZoneWelcome-GameText
 
 WriteGameText:
 	pha	;save text number to stack
@@ -1717,19 +1757,23 @@ WriteGameText:
 	cpy #$08	;if set to do time-up or game over,
 	bcc Chk2Players	;branch to check players
 	ldy #$08	;otherwise warp zone, therefore set offset
-Chk2Players:   lda NumberOfPlayers	;check for number of players
+Chk2Players:
+	lda NumberOfPlayers	;check for number of players
 	bne LdGameText	;if there are two, use current offset to also print name
 	iny	;otherwise increment offset by one to not print name
-LdGameText:	ldx GameTextOffsets,y	;get offset to message we want to print
+LdGameText:
+	ldx GameTextOffsets,y	;get offset to message we want to print
 	ldy #$00
-GameTextLoop:  lda GameText,x	;load message data
+GameTextLoop:
+	lda GameText,x	;load message data
 	cmp #$ff	;check for terminator
 	beq EndGameText	;branch to end text if found
 	sta VRAM_Buffer1,y	;otherwise write data to buffer
 	inx	;and increment increment
 	iny
 	bne GameTextLoop	;do this for 256 bytes if no terminator found
-EndGameText:   lda #$00	;put null terminator at end
+EndGameText:
+	lda #$00	;put null terminator at end
 	sta VRAM_Buffer1,y
 	pla	;pull original text number from stack
 	tax
@@ -1745,7 +1789,8 @@ EndGameText:   lda #$00	;put null terminator at end
 	sbc #10	;if so, subtract 10 and put a crown tile
 	ldy #$9f	;next to the difference...strange things happen if
 	sty VRAM_Buffer1+7	;the number of lives exceeds 19
-PutLives:	sta VRAM_Buffer1+8
+PutLives:
+	sta VRAM_Buffer1+8
 	ldy WorldNumber	;write world and level numbers (incremented for display)
 	iny	;to the buffer in the spaces surrounding the dash
 	sty VRAM_Buffer1+19
@@ -1764,14 +1809,17 @@ CheckPlayerName:
 	cpy #GameOverModeValue
 	beq ChkLuigi
 	eor #%00000001	;if not, must be time up, invert d0 to do other player
-ChkLuigi:	lsr
+ChkLuigi:
+	lsr
 	bcc ExitChkName	;if mario is current player, do not change the name
 	ldy #$04
-NameLoop:	lda LuigiName,y	;otherwise, replace "MARIO" with "LUIGI"
+NameLoop:
+	lda LuigiName,y	;otherwise, replace "MARIO" with "LUIGI"
 	sta VRAM_Buffer1+3,y
 	dey
 	bpl NameLoop	;do this until each letter is replaced
-ExitChkName: rts
+ExitChkName:
+	rts
 
 PrintWarpZoneNumbers:
 	sbc #$04	;subtract 4 and then shift to the left
@@ -1779,7 +1827,8 @@ PrintWarpZoneNumbers:
 	asl	;offset
 	tax
 	ldy #$00
-WarpNumLoop: lda WarpZoneNumbers,x	;print warp zone numbers into the
+WarpNumLoop:
+	lda WarpZoneNumbers,x	;print warp zone numbers into the
 	sta VRAM_Buffer1+27,y  ;placeholders from earlier
 	inx
 	iny	;put a number in every fourth space
@@ -1790,7 +1839,6 @@ WarpNumLoop: lda WarpZoneNumbers,x	;print warp zone numbers into the
 	bcc WarpNumLoop
 	lda #$2c	;load new buffer pointer at end of message
 	jmp SetVRAMOffset
-
 ;-------------------------------------------------------------------------------------
 
 ResetSpritesAndScreenTimer:
@@ -1802,8 +1850,8 @@ ResetScreenTimer:
 	lda #$07	;reset timer again
 	sta ScreenTimer
 	inc ScreenRoutineTask	;move onto next task
-NoReset: rts
-
+NoReset:
+	rts
 ;-------------------------------------------------------------------------------------
 ;$00 - temp vram buffer offset
 ;$01 - temp metatile buffer offset
@@ -1867,7 +1915,8 @@ DrawMTLoop: stx $01	;store init value of 0 or incremented offset for buffer
 	rol $03	;thus in d1-d0, for upper left square
 	rol $03
 	jmp SetAttrib
-RightCheck: lda $01	;get LSB of current row we're rendering
+RightCheck:
+	lda $01	;get LSB of current row we're rendering
 	lsr	;branch if set (clear = top right, set = bottom right)
 	bcs NextMTRow
 	lsr $03	;shift attribute bits 4 to the right
@@ -1875,10 +1924,13 @@ RightCheck: lda $01	;get LSB of current row we're rendering
 	lsr $03
 	lsr $03
 	jmp SetAttrib
-LLeft:	lsr $03	;shift attribute bits 2 to the right
+LLeft:
+	lsr $03	;shift attribute bits 2 to the right
 	lsr $03	;thus in d5-d4 for lower left square
-NextMTRow:	inc $04	;move onto next attribute row
-SetAttrib:	lda AttributeBuffer,y	;get previously saved bits from before
+NextMTRow:
+	inc $04	;move onto next attribute row
+SetAttrib:
+	lda AttributeBuffer,y	;get previously saved bits from before
 	ora $03	;if any, and put new bits, if any, onto
 	sta AttributeBuffer,y	;the old, and store
 	inc $00	;increment vram buffer offset by 2
@@ -1903,8 +1955,8 @@ SetAttrib:	lda AttributeBuffer,y	;get previously saved bits from before
 	lda CurrentNTAddr_High	;and then invert d2 of the name table address high
 	eor #%00000100	;to move onto the next appropriate name table
 	sta CurrentNTAddr_High
-ExitDrawM:	jmp SetVRAMCtrl	;jump to set buffer to $0341 and leave
-
+ExitDrawM:
+	jmp SetVRAMCtrl	;jump to set buffer to $0341 and leave
 ;-------------------------------------------------------------------------------------
 ;$00 - temp attribute table address high (big endian order this time!)
 ;$01 - temp attribute table address low
@@ -1919,7 +1971,8 @@ RenderAttributeTables:
 	lda CurrentNTAddr_High	;get high byte and branch if borrow not set
 	bcs SetATHigh
 	eor #%00000100	;otherwise invert d2
-SetATHigh:	and #%00000100	;mask out all other bits
+SetATHigh:
+	and #%00000100	;mask out all other bits
 	ora #$23	;add $2300 to the high byte and store
 	sta $00
 	lda $01	;get low byte - 4, divide by 4, add offset for
@@ -1929,7 +1982,8 @@ SetATHigh:	and #%00000100	;mask out all other bits
 	sta $01	;attribute table in our temp address
 	ldx #$00
 	ldy VRAM_Buffer2_Offset	;get buffer offset
-AttribLoop:	lda $00
+AttribLoop:
+	lda $00
 	sta VRAM_Buffer2,y	;store high byte of attribute table address
 	lda $01
 	clc	;get low byte, add 8 because we want to start
@@ -1954,7 +2008,6 @@ AttribLoop:	lda $00
 SetVRAMCtrl: lda #$06
 	sta VRAM_Buffer_AddrCtrl ;set buffer to $0341 and leave
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 ;$00 - used as temporary counter in ColorRotation
@@ -1980,7 +2033,8 @@ ColorRotation:
 	cpx #$31
 	bcs ExitColorRot	;if offset over 48 bytes, branch to leave
 	tay	;otherwise use frame counter's 3 LSB as offset here
-GetBlankPal:  lda BlankPalette,y	;get blank palette for palette 3
+GetBlankPal:
+	lda BlankPalette,y	;get blank palette for palette 3
 	sta VRAM_Buffer1,x	;store it in the vram buffer
 	inx	;increment offsets
 	iny
@@ -1993,7 +2047,8 @@ GetBlankPal:  lda BlankPalette,y	;get blank palette for palette 3
 	asl	;multiply by 4 to get proper offset
 	asl
 	tay	;save as offset here
-GetAreaPal:	lda Palette3Data,y	;fetch palette to be written based on area type
+GetAreaPal:
+	lda Palette3Data,y	;fetch palette to be written based on area type
 	sta VRAM_Buffer1+3,x	;store it to overwrite blank palette in vram buffer
 	iny
 	inx
@@ -2013,8 +2068,8 @@ GetAreaPal:	lda Palette3Data,y	;fetch palette to be written based on area type
 	bcc ExitColorRot	;if so, branch to leave
 	lda #$00
 	sta ColorRotateOffset	;otherwise, init to keep it in range
-ExitColorRot: rts	;leave
-
+ExitColorRot:
+	rts	;leave
 ;-------------------------------------------------------------------------------------
 ;$00 - temp store for offset control bit
 ;$01 - temp vram buffer offset
@@ -2036,7 +2091,8 @@ RemoveCoin_Axe:
 	ldx AreaType	;check area type
 	bne WriteBlankMT	;if not water type, use offset
 	lda #$04	;otherwise load offset for blank metatile used in water
-WriteBlankMT: jsr PutBlockMetatile	;do a sub to write blank metatile to vram buffer
+WriteBlankMT:
+	jsr PutBlockMetatile	;do a sub to write blank metatile to vram buffer
 	lda #$06
 	sta VRAM_Buffer_AddrCtrl ;set vram address controller to $0341 and leave
 	rts
@@ -2065,11 +2121,13 @@ WriteBlockMetatile:
 	cmp #$52
 	beq UseBOffset	;use offset if metatile is breakable brick w/o line
 	iny	;if any other metatile, increment offset for empty block
-UseBOffset:	tya	;put Y in A
+UseBOffset:
+	tya	;put Y in A
 	ldy VRAM_Buffer1_Offset ;get vram buffer offset
 	iny	;move onto next byte
 	jsr PutBlockMetatile	;get appropriate block data and write to vram buffer
-MoveVOffset: dey	;decrement vram buffer offset
+MoveVOffset:
+	dey	;decrement vram buffer offset
 	tya	;add 10 bytes to it
 	clc
 	adc #10
@@ -2086,7 +2144,8 @@ PutBlockMetatile:
 	cmp #$d0	;check to see if we're on odd-page block buffer
 	bcc SaveHAdder	;if not, use current high byte
 	ldy #$24	;otherwise load high byte for name table 1
-SaveHAdder: sty $03	;save high byte here
+SaveHAdder:
+	sty $03	;save high byte here
 	and #$0f	;mask out high nybble of block buffer pointer
 	asl	;multiply by 2 to get appropriate name table low byte
 	sta $04	;and then store it here
@@ -2107,7 +2166,8 @@ SaveHAdder: sty $03	;save high byte here
 	adc $03	;then add high byte of name table
 	sta $05	;store here
 	ldy $01	;get vram buffer offset to be used
-RemBridge:	lda BlockGfxData,x	;write top left and top right
+RemBridge:
+	lda BlockGfxData,x	;write top left and top right
 	sta VRAM_Buffer1+2,y  ;tile numbers into first spot
 	lda BlockGfxData+1,x
 	sta VRAM_Buffer1+3,y
@@ -2130,7 +2190,6 @@ RemBridge:	lda BlockGfxData,x	;write top left and top right
 	sta VRAM_Buffer1+9,y  ;put null terminator at end
 	ldx $00	;get offset control bit here
 	rts	;and leave
-
 ;-------------------------------------------------------------------------------------
 ;METATILE GRAPHICS TABLE
 
@@ -2248,7 +2307,6 @@ Palette3_MTiles:
 	db $c2, $c4, $c3, $c5 ;underwater coin
 	db $57, $59, $58, $5a ;empty block
 	db $7b, $7d, $7c, $7e ;axe
-
 ;-------------------------------------------------------------------------------------
 ;VRAM BUFFER DATA FOR LOCATIONS IN PRG-ROM
 
@@ -2377,7 +2435,6 @@ WorldSelectMessage2:
 	db $1d, $18, $24, $1c, $0e, $15, $0e, $0c, $1d, $24
 	db $0a, $24, $20, $18, $1b, $15, $0d
 	db $00
-
 ;-------------------------------------------------------------------------------------
 ;$04 - address low to jump address
 ;$05 - address high to jump address
@@ -2398,7 +2455,6 @@ JumpEngine:
 	lda ($04),y	;that called this routine
 	sta $07
 	jmp ($06)	;jump to the address we loaded
-
 ;-------------------------------------------------------------------------------------
 
 InitializeNameTables:
@@ -2410,13 +2466,15 @@ InitializeNameTables:
 	lda #$24	;set vram address to start of name table 1
 	jsr WriteNTAddr
 	lda #$20	;and then set it to name table 0
-WriteNTAddr:  sta PPU_ADDRESS
+WriteNTAddr:
+	sta PPU_ADDRESS
 	lda #$00
 	sta PPU_ADDRESS
 	ldx #$04	;clear name table with blank tile #24
 	ldy #$c0
 	lda #$24
-InitNTLoop:	sta PPU_DATA	;count out exactly 768 tiles
+InitNTLoop:
+	sta PPU_DATA	;count out exactly 768 tiles
 	dey
 	bne InitNTLoop
 	dex
@@ -2425,13 +2483,13 @@ InitNTLoop:	sta PPU_DATA	;count out exactly 768 tiles
 	txa
 	sta VRAM_Buffer1_Offset   ;init vram buffer 1 offset
 	sta VRAM_Buffer1	;init vram buffer 1
-InitATLoop:	sta PPU_DATA
+InitATLoop:
+	sta PPU_DATA
 	dey
 	bne InitATLoop
 	sta HorizontalScroll	;reset scroll variables
 	sta VerticalScroll
 	jmp InitScroll	;initialize scroll registers to zero
-
 ;-------------------------------------------------------------------------------------
 ;$00 - temp joypad bit
 
@@ -2443,8 +2501,10 @@ ReadJoypads:
 	sta JOYPAD_PORT
 	jsr ReadPortBits
 	inx	;increment for joypad 2's port
-ReadPortBits: ldy #$08
-PortLoop:	pha	;push previous bit onto stack
+ReadPortBits:
+	ldy #$08
+PortLoop:
+	pha	;push previous bit onto stack
 	lda JOYPAD_PORT,x	;read current bit on joypad port
 	sta $00	;check d1 and d0 of port output
 	lsr	;this is necessary on the old
@@ -2463,7 +2523,8 @@ PortLoop:	pha	;push previous bit onto stack
 	and #%11001111	;otherwise store without select
 	sta SavedJoypadBits,x	;or start bits and leave
 	rts
-Save8Bits:	pla
+Save8Bits:
+	pla
 	sta JoypadBitMask,x	;save with all bits in another place and leave
 	rts
 
@@ -2484,18 +2545,22 @@ WriteBufferToScreen:
 	ora #%00000100	;set ppu to increment by 32 by default
 	bcs SetupWrites	;if d7 of third byte was clear, ppu will
 	and #%11111011	;only increment by 1
-SetupWrites:   jsr WritePPUReg1	;write to register
+SetupWrites:
+	jsr WritePPUReg1	;write to register
 	pla	;pull from stack and shift to left again
 	asl
 	bcc GetLength	;if d6 of third byte was clear, do not repeat byte
 	ora #%00000010	;otherwise set d1 and increment Y
 	iny
-GetLength:	lsr	;shift back to the right to get proper length
+GetLength:
+	lsr	;shift back to the right to get proper length
 	lsr	;note that d1 will now be in carry
 	tax
-OutputToVRAM:  bcs RepeatByte	;if carry set, repeat loading the same byte
+OutputToVRAM:
+	bcs RepeatByte	;if carry set, repeat loading the same byte
 	iny	;otherwise increment Y to load next byte
-RepeatByte:	lda ($00),y	;load more data from buffer and write to vram
+RepeatByte:
+	lda ($00),y	;load more data from buffer and write to vram
 	sta PPU_DATA
 	dex	;done writing?
 	bne OutputToVRAM
@@ -2512,21 +2577,21 @@ RepeatByte:	lda ($00),y	;load more data from buffer and write to vram
 	sta PPU_ADDRESS
 	sta PPU_ADDRESS	;then reinitializes it for some reason
 	sta PPU_ADDRESS
-UpdateScreen:  ldx PPU_STATUS	;reset flip-flop
+UpdateScreen:
+	ldx PPU_STATUS	;reset flip-flop
 	ldy #$00	;load first byte from indirect as a pointer
 	lda ($00),y
 	bne WriteBufferToScreen	;if byte is zero we have no further updates to make here
-InitScroll:	sta PPU_SCROLL_REG	;store contents of A into scroll registers
+InitScroll:
+	sta PPU_SCROLL_REG	;store contents of A into scroll registers
 	sta PPU_SCROLL_REG	;and end whatever subroutine led us here
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 WritePPUReg1:
 	sta PPU_CTRL_REG1	;write contents of A to PPU register 1
 	sta Mirror_PPU_CTRL_REG1	;and its mirror
 	rts
-
 ;-------------------------------------------------------------------------------------
 ;$00 - used to store status bar nybbles
 ;$02 - used as temp vram offset
@@ -2567,7 +2632,8 @@ OutputNumbers:
 	cpy #$00	;are we writing top score on title screen?
 	bne SetupNums
 	lda #$22	;if so, put further down on the screen
-SetupNums:	sta VRAM_Buffer1,x
+SetupNums:
+	sta VRAM_Buffer1,x
 	lda StatusBarData,y	;write low vram address and length of thing
 	sta VRAM_Buffer1+1,x	;we're printing to the buffer
 	lda StatusBarData+1,y
@@ -2581,7 +2647,8 @@ SetupNums:	sta VRAM_Buffer1,x
 	sbc StatusBarData+1,y	;subtract from length byte we read before
 	tay	;use value as offset to display digits
 	ldx $02
-DigitPLoop:	lda DisplayDigits,y	;write digits to the buffer
+DigitPLoop:
+	lda DisplayDigits,y	;write digits to the buffer
 	sta VRAM_Buffer1+3,x
 	inx
 	iny
@@ -2593,8 +2660,8 @@ DigitPLoop:	lda DisplayDigits,y	;write digits to the buffer
 	inx
 	inx
 	stx VRAM_Buffer1_Offset	;store it in case we want to use it again
-ExitOutputN: rts
-
+ExitOutputN:
+	rts
 ;-------------------------------------------------------------------------------------
 
 DigitsMathRoutine:
@@ -2602,30 +2669,35 @@ DigitsMathRoutine:
 	cmp #TitleScreenModeValue
 	beq EraseDMods	;if in title screen mode, branch to lock score
 	ldx #$05
-AddModLoop: lda DigitModifier,x	;load digit amount to increment
+AddModLoop:
+	lda DigitModifier,x	;load digit amount to increment
 	clc
 	adc DisplayDigits,y	;add to current digit
 	bmi BorrowOne	;if result is a negative number, branch to subtract
 	cmp #10
 	bcs CarryOne	;if digit greater than $09, branch to add
-StoreNewD:	sta DisplayDigits,y	;store as new score or game timer digit
+StoreNewD:
+	sta DisplayDigits,y	;store as new score or game timer digit
 	dey	;move onto next digits in score or game timer
 	dex	;and digit amounts to increment
 	bpl AddModLoop	;loop back if we're not done yet
-EraseDMods: lda #$00	;store zero here
+EraseDMods:
+	lda #$00	;store zero here
 	ldx #$06	;start with the last digit
-EraseMLoop: sta DigitModifier-1,x	;initialize the digit amounts to increment
+EraseMLoop:
+	sta DigitModifier-1,x	;initialize the digit amounts to increment
 	dex
 	bpl EraseMLoop	;do this until they're all reset, then leave
 	rts
-BorrowOne:	dec DigitModifier-1,x	;decrement the previous digit, then put $09 in
+BorrowOne:
+	dec DigitModifier-1,x	;decrement the previous digit, then put $09 in
 	lda #$09	;the game timer digit we're currently on to "borrow
 	bne StoreNewD	;the one", then do an unconditional branch back
-CarryOne:	sec	;subtract ten from our digit to make it a
+CarryOne:
+	sec	;subtract ten from our digit to make it a
 	sbc #10	;proper BCD number, then increment the digit
 	inc DigitModifier-1,x	;preceding current digit to "carry the one" properly
 	jmp StoreNewD	;go back to just after we branched here
-
 ;-------------------------------------------------------------------------------------
 
 UpdateTopScore:
@@ -2636,7 +2708,8 @@ UpdateTopScore:
 TopScoreCheck:
 	ldy #$05	;start with the lowest digit
 	sec
-GetScoreDiff: lda PlayerScoreDisplay,x ;subtract each player digit from each high score digit
+GetScoreDiff:
+	lda PlayerScoreDisplay,x ;subtract each player digit from each high score digit
 	sbc TopScoreDisplay,y	;from lowest to highest, if any top score digit exceeds
 	dex	;any player digit, borrow will be set until a subsequent
 	dey	;subtraction clears it (player digit is higher than top)
@@ -2644,14 +2717,15 @@ GetScoreDiff: lda PlayerScoreDisplay,x ;subtract each player digit from each hig
 	bcc NoTopSc	;check to see if borrow is still set, if so, no new high score
 	inx	;increment X and Y once to the start of the score
 	iny
-CopyScore:	lda PlayerScoreDisplay,x ;store player's score digits into high score memory area
+CopyScore:
+	lda PlayerScoreDisplay,x ;store player's score digits into high score memory area
 	sta TopScoreDisplay,y
 	inx
 	iny
 	cpy #$06	;do this until we have stored them all
 	bcc CopyScore
-NoTopSc:	rts
-
+NoTopSc:
+	rts
 ;-------------------------------------------------------------------------------------
 
 DefaultSprOffsets:
@@ -2660,14 +2734,14 @@ DefaultSprOffsets:
 
 Sprite0Data:
 	db $18, $ff, $23, $58
-
 ;-------------------------------------------------------------------------------------
 
 InitializeGame:
 	ldy #$6f	;clear all memory as in initialization procedure,
 	jsr InitializeMemory  ;but this time, clear only as far as $076f
 	ldy #$1f
-ClrSndLoop:	sta SoundMemory,y	;clear out memory used
+ClrSndLoop:
+	sta SoundMemory,y	;clear out memory used
 	dey	;by the sound engines
 	bpl ClrSndLoop
 	lda #$18	;set demo timer
@@ -2679,14 +2753,16 @@ InitializeArea:
 	jsr InitializeMemory	;this is only necessary if branching from
 	ldx #$21
 	lda #$00
-ClrTimersLoop: sta Timers,x	;clear out memory between
+ClrTimersLoop:
+	sta Timers,x	;clear out memory between
 	dex	;$0780 and $07a1
 	bpl ClrTimersLoop
 	lda HalfwayPage
 	ldy AltEntranceControl   ;if AltEntranceControl not set, use halfway page, if any found
 	beq StartPage
 	lda EntrancePage	;otherwise use saved entry page number here
-StartPage:	sta ScreenLeft_PageLoc	;set as value here
+StartPage:
+	sta ScreenLeft_PageLoc	;set as value here
 	sta CurrentPageLoc	;also set as current page
 	sta BackloadingFlag	;set flag here if halfway page or saved entry page number found
 	jsr GetScreenPosition	;get pixel coordinates for screen borders
@@ -2694,7 +2770,8 @@ StartPage:	sta ScreenLeft_PageLoc	;set as value here
 	and #%00000001	;otherwise use $2080, this address used later as name table
 	beq SetInitNTHigh	;address for rendering of game area
 	ldy #$24
-SetInitNTHigh: sty CurrentNTAddr_High	;store name table address
+SetInitNTHigh:
+	sty CurrentNTAddr_High	;store name table address
 	ldy #$80
 	sty CurrentNTAddr_Low
 	asl	;store LSB of page number in high nybble
@@ -2717,18 +2794,20 @@ SetInitNTHigh: sty CurrentNTAddr_High	;store name table address
 	lda LevelNumber	;otherwise, world 5, so check level number
 	cmp #Level3	;if 1 or 2, do not set secondary hard mode flag
 	bcc CheckHalfway
-SetSecHard:	inc SecondaryHardMode	;set secondary hard mode flag for areas 5-3 and beyond
-CheckHalfway:  lda HalfwayPage
+SetSecHard:
+	inc SecondaryHardMode	;set secondary hard mode flag for areas 5-3 and beyond
+CheckHalfway:
+	lda HalfwayPage
 	beq DoneInitArea
 	lda #$02	;if halfway page set, overwrite start position from header
 	sta PlayerEntranceCtrl
-DoneInitArea:  lda #Silence	;silence music
+DoneInitArea:
+	lda #Silence	;silence music
 	sta AreaMusicQueue
 	lda #$01	;disable screen output
 	sta DisableScreenFlag
 	inc OperMode_Task	;increment one of the modes
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 PrimaryGameSetup:
@@ -2743,7 +2822,8 @@ SecondaryGameSetup:
 	lda #$00
 	sta DisableScreenFlag	;enable screen output
 	tay
-ClearVRLoop: sta VRAM_Buffer1-1,y	;clear buffer at $0300-$03ff
+ClearVRLoop:
+	sta VRAM_Buffer1-1,y	;clear buffer at $0300-$03ff
 	iny
 	bne ClearVRLoop
 	sta GameTimerExpiredFlag  ;clear game timer exp flag

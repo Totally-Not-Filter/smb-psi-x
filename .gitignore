@@ -1,4 +1,4 @@
-smb.unh
-smb.prev.unh
-smb.lst
-errors.log
+out/smb.unh
+out/smb.prev.unh
+out/smb.lst
+out/errors.log
