@@ -1,7 +1,7 @@
 ;iNES Header data
 	db	"NES",$1A
-	db	(PRG_End-PRG_Start)/16000	;PRG ROM
-	db	(CHR_End-CHR_Start)/8000	;CHR ROM
+	db	(PRGROM_End-PRGROM_Start)/16000	;PRG ROM
+	db	(CHRROM_End-CHRROM_Start)/8000	;CHR ROM
 	db	$00	;MAPPER
 	db	$00	;MAPPER
 	db	$00	;PRG RAM SIZE

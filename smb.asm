@@ -31,7 +31,7 @@ iNES_Header	= 0	;set this to 1 to enable the iNES header (inaccurate to real car
 	org $8000
 ;-------------------------------------------------------------------------------------
 
-PRG_Start:
+PRGROM_Start:
 	sei	;pretty standard 6502 type init here
 	cld
 	lda #%00010000	;init PPU control register 1
@@ -15810,13 +15810,13 @@ BrickShatterEnvData:
 ;INTERRUPT VECTORS
 
 	dw NonMaskableInterrupt
-	dw PRG_Start
+	dw PRGROM_Start
 	dw $fff0  ;unused
 
-PRG_End
+PRGROM_End
 
 	align	$8000	;alignment for CHR bank
 
-CHR_Start
+CHRROM_Start
 	incbin	chr.bin
-CHR_End
+CHRROM_End
