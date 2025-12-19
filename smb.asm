@@ -672,7 +672,7 @@ GameOverModeValue	= 3
 	org $8000
 ;-------------------------------------------------------------------------------------
 
-Start:
+PRG_Start:
 	sei	;pretty standard 6502 type init here
 	cld
 	lda #%00010000	;init PPU control register 1
@@ -16451,9 +16451,13 @@ BrickShatterEnvData:
 ;INTERRUPT VECTORS
 
 	dw NonMaskableInterrupt
-	dw Start
+	dw PRG_Start
 	dw $fff0  ;unused
+
+PRG_End
 
 	align	$8000	;alignment for CHR bank
 
+CHR_Start
 	incbin	chr.bin
+CHR_End
