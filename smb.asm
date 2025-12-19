@@ -16,7 +16,13 @@
 ;only be theory.
 
 ;Assembles with x816.
-
+;-------------------------------------------------------------------------------------
+;Assembler options
+iNES_Header	= 0	;set this to 1 to enable the iNES header (inaccurate to real cartridge ROM output but works on emulators)
+	if iNES_Header
+	org	$7FF0
+	include	iNES_Header.asm
+	endif
 ;-------------------------------------------------------------------------------------
 ;DEFINES
 
