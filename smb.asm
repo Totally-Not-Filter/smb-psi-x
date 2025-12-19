@@ -16448,4 +16448,6 @@ BrickShatterEnvData:
 	dw Start
 	dw $fff0  ;unused
 
+	align	$8000	;alignment for CHR bank
+
 	incbin	chr.bin
