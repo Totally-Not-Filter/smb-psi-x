@@ -1242,7 +1242,8 @@ RenderAreaGraphics:
 	lda #$00	;init attribute row
 	sta $04
 	tax
-DrawMTLoop: stx $01	;store init value of 0 or incremented offset for buffer
+DrawMTLoop:
+	stx $01	;store init value of 0 or incremented offset for buffer
 	lda MetatileBuffer,x	;get first metatile number, and mask out all but 2 MSB
 	and #%11000000
 	sta $03	;store attribute table bits here
@@ -1370,7 +1371,8 @@ AttribLoop:
 	bcc AttribLoop
 	sta VRAM_Buffer2,y	;put null terminator at the end
 	sty VRAM_Buffer2_Offset	;store offset in case we want to do any more
-SetVRAMCtrl: lda #$06
+SetVRAMCtrl:
+	lda #$06
 	sta VRAM_Buffer_AddrCtrl ;set buffer to $0341 and leave
 	rts
 ;-------------------------------------------------------------------------------------
@@ -2209,12 +2211,14 @@ ClearVRLoop:
 	lda #$58
 	sta SprShuffleAmt
 	ldx #$0e	;load default OAM offsets into $06e4-$06f2
-ShufAmtLoop: lda DefaultSprOffsets,x
+ShufAmtLoop:
+	lda DefaultSprOffsets,x
 	sta SprDataOffset,x
 	dex	;do this until they're all set
 	bpl ShufAmtLoop
 	ldy #$03	;set up sprite #0
-ISpr0Loop:	lda Sprite0Data,y
+ISpr0Loop:
+	lda Sprite0Data,y
 	sta Sprite_Data,y
 	dey
 	bpl ISpr0Loop
@@ -2223,7 +2227,6 @@ ISpr0Loop:	lda Sprite0Data,y
 	inc Sprite0HitDetectFlag  ;set sprite #0 check flag
 	inc OperMode_Task	;increment to next task
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 ;$06 - RAM address low
@@ -2233,19 +2236,22 @@ InitializeMemory:
 	ldx #$07	;set initial high byte to $0700-$07ff
 	lda #$00	;set initial low byte to start of page (at $00 of page)
 	sta $06
-InitPageLoop: stx $07
-InitByteLoop: cpx #$01	;check to see if we're on the stack ($0100-$01ff)
+InitPageLoop:
+	stx $07
+InitByteLoop:
+	cpx #$01	;check to see if we're on the stack ($0100-$01ff)
 	bne InitByte	;if not, go ahead anyway
 	cpy #$60	;otherwise, check to see if we're at $0160-$01ff
 	bcs SkipByte	;if so, skip write
-InitByte:	sta ($06),y	;otherwise, initialize byte with current low byte in Y
-SkipByte:	dey
+InitByte:
+	sta ($06),y	;otherwise, initialize byte with current low byte in Y
+SkipByte:
+	dey
 	cpy #$ff	;do this until all bytes in page have been erased
 	bne InitByteLoop
 	dex	;go onto the next page
 	bpl InitPageLoop  ;do this until all pages of memory have been erased
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 MusicSelectData:
@@ -2264,14 +2270,16 @@ GetAreaMusic:
 	beq StoreMusic	;load music for pipe intro scene if header
 	cmp #$07	;start position either value $06 or $07
 	beq StoreMusic
-ChkAreaType: ldy AreaType	;load area type as offset for music bit
+ChkAreaType:
+	ldy AreaType	;load area type as offset for music bit
 	lda CloudTypeOverride
 	beq StoreMusic	;check for cloud type override
 	ldy #$04	;select music for cloud type level if found
-StoreMusic:	lda MusicSelectData,y	;otherwise select appropriate music for level type
+StoreMusic:
+	lda MusicSelectData,y	;otherwise select appropriate music for level type
 	sta AreaMusicQueue	;store in queue and leave
-ExitGetM:	rts
-
+ExitGetM:
+	rts
 ;-------------------------------------------------------------------------------------
 
 PlayerStarting_X_Pos:
@@ -2308,14 +2316,16 @@ Entrance_GameTimerSetup:
 	lda AreaType	;check area type
 	bne ChkStPos	;if water type, set swimming flag, otherwise do not set
 	iny
-ChkStPos: sty SwimmingFlag
+ChkStPos:
+	sty SwimmingFlag
 	ldx PlayerEntranceCtrl	;get starting position loaded from header
 	ldy AltEntranceControl	;check alternate mode of entry flag for 0 or 1
 	beq SetStPos
 	cpy #$01
 	beq SetStPos
 	ldx AltYPosOffset-2,y	;if not 0 or 1, override $0710 with new offset in X
-SetStPos: lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
+SetStPos:
+	lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
 	sta Player_X_Position	;and vertical positions for the player, using
 	lda PlayerStarting_Y_Pos,x  ;AltEntranceControl as offset for horizontal and either $0710
 	sta Player_Y_Position	;or value that overwrote $0710 as offset for vertical
@@ -2334,7 +2344,8 @@ SetStPos: lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
 	sta GameTimerDisplay+1	;set second digit of game timer
 	sta FetchNewGameTimerFlag	;clear flag for game timer reset
 	sta StarInvincibleTimer	;clear star mario timer
-ChkOverR: ldy JoypadOverride	;if controller bits not set, branch to skip this part
+ChkOverR:
+	ldy JoypadOverride	;if controller bits not set, branch to skip this part
 	beq ChkSwimE
 	lda #$03	;set player state to climbing
 	sta Player_State
@@ -2345,13 +2356,14 @@ ChkOverR: ldy JoypadOverride	;if controller bits not set, branch to skip this pa
 	ldx #$05	;set offset in X for last enemy object buffer slot
 	ldy #$00	;set offset in Y for object coordinates used earlier
 	jsr Setup_Vine	;do a sub to grow vine
-ChkSwimE: ldy AreaType	;if level not water-type,
+ChkSwimE:
+	ldy AreaType	;if level not water-type,
 	bne SetPESub	;skip this subroutine
 	jsr SetupBubble	;otherwise, execute sub to set up air bubbles
-SetPESub: lda #$07	;set to run player entrance subroutine
+SetPESub:
+	lda #$07	;set to run player entrance subroutine
 	sta GameEngineSubroutine	;on the next frame of game engine
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 ;page numbers are in order from -1 to -4
@@ -2378,14 +2390,16 @@ PlayerLoseLife:
 	lda #GameOverModeValue	;switch to game over mode
 	sta OperMode	;and leave
 	rts
-StillInGame: lda WorldNumber	;multiply world number by 2 and use
+StillInGame:
+	lda WorldNumber	;multiply world number by 2 and use
 	asl	;as offset
 	tax
 	lda LevelNumber	;if in area -3 or -4, increment
 	and #$02	;offset by one byte, otherwise
 	beq GetHalfway	;leave offset alone
 	inx
-GetHalfway:	ldy HalfwayPageNybbles,x ;get halfway page number with offset
+GetHalfway:
+	ldy HalfwayPageNybbles,x ;get halfway page number with offset
 	lda LevelNumber	;check area number's LSB
 	lsr
 	tya	;if in area -2 or -4, use lower nybble
@@ -2394,15 +2408,16 @@ GetHalfway:	ldy HalfwayPageNybbles,x ;get halfway page number with offset
 	lsr	;number is -1 or -3
 	lsr
 	lsr
-MaskHPNyb:	and #%00001111	;mask out all but lower nybble
+MaskHPNyb:
+	and #%00001111	;mask out all but lower nybble
 	cmp ScreenLeft_PageLoc
 	beq SetHalfway	;left side of screen must be at the halfway page,
 	bcc SetHalfway	;otherwise player must start at the
 	lda #$00	;beginning of the level
-SetHalfway:	sta HalfwayPage	;store as halfway page for player
+SetHalfway:
+	sta HalfwayPage	;store as halfway page for player
 	jsr TransposePlayers	;switch players around if 2-player game
 	jmp ContinueGame	;continue the game
-
 ;-------------------------------------------------------------------------------------
 
 GameOverMode:
@@ -2424,7 +2439,6 @@ SetupGameOver:
 	inc DisableScreenFlag	;disable screen output
 	inc OperMode_Task	;set secondary mode to 1
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 RunGameOver:
@@ -2461,7 +2475,8 @@ ContinueGame:
 	sta OperMode_Task	;set modes and leave
 	lda #$01	;if in game over mode, switch back to
 	sta OperMode	;game mode, because game is still on
-GameIsOn:  rts
+GameIsOn:
+	rts
 
 TransposePlayers:
 	sec	;set carry flag by default to end game
@@ -2473,7 +2488,8 @@ TransposePlayers:
 	eor #%00000001	;which player is on the screen
 	sta CurrentPlayer
 	ldx #$06
-TransLoop: lda OnscreenPlayerInfo,x	;transpose the information
+TransLoop:
+	lda OnscreenPlayerInfo,x	;transpose the information
 	pha		;of the onscreen player
 	lda OffscreenPlayerInfo,x   ;with that of the offscreen player
 	sta OnscreenPlayerInfo,x
@@ -2482,8 +2498,8 @@ TransLoop: lda OnscreenPlayerInfo,x	;transpose the information
 	dex
 	bpl TransLoop
 	clc	;clear carry flag to get game going
-ExTrans:   rts
-
+ExTrans:
+	rts
 ;-------------------------------------------------------------------------------------
 
 DoNothing1:
@@ -2491,7 +2507,6 @@ DoNothing1:
 	sta $06c9	;not used anywhere in the program
 DoNothing2:
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 AreaParserTaskHandler:
@@ -2499,13 +2514,15 @@ AreaParserTaskHandler:
 	bne DoAPTasks	;if already set, go ahead
 	ldy #$08
 	sty AreaParserTaskNum	;otherwise, set eight by default
-DoAPTasks:	dey
+DoAPTasks:
+	dey
 	tya
 	jsr AreaParserTasks
 	dec AreaParserTaskNum	;if all tasks not complete do not
 	bne SkipATRender	;render attribute table yet
 	jsr RenderAttributeTables
-SkipATRender: rts
+SkipATRender:
+	rts
 
 AreaParserTasks:
 	jsr JumpEngine
@@ -2533,7 +2550,6 @@ NoColWrap: inc BlockBufferColumnPos ;increment column offset where we're at
 	and #%00011111	;mask out all but 5 LSB (0-1f)
 	sta BlockBufferColumnPos ;and save
 	rts
-
 ;-------------------------------------------------------------------------------------
 ;$00 - used as counter, store for low nybble for background, ceiling byte for terrain
 ;$01 - used to store floor byte for terrain
@@ -2627,12 +2643,14 @@ ClrMTBuf: sta MetatileBuffer,x	;clear out metatile buffer
 	ldy BackgroundScenery	;do we need to render the background scenery?
 	beq RendFore	;if not, skip to check the foreground
 	lda CurrentPageLoc	;otherwise check for every third page
-ThirdP:	cmp #$03
+ThirdP:
+	cmp #$03
 	bmi RendBack	;if less than three we're there
 	sec
 	sbc #$03	;if 3 or more, subtract 3 and
 	bpl ThirdP	;do an unconditional branch
-RendBack: asl	;move results to higher nybble
+RendBack:
+	asl	;move results to higher nybble
 	asl
 	asl
 	asl
@@ -2657,7 +2675,8 @@ RendBack: asl	;move results to higher nybble
 	tay	;use as second offset (used to determine height)
 	lda #$03	;use previously saved memory location for counter
 	sta $00
-SceLoop1: lda BackSceneryMetatiles,x ;load metatile data from offset of (lsb - 1) * 3
+SceLoop1:
+	lda BackSceneryMetatiles,x ;load metatile data from offset of (lsb - 1) * 3
 	sta MetatileBuffer,y	;store into buffer from offset of (msb / 16)
 	inx
 	iny
@@ -2665,34 +2684,41 @@ SceLoop1: lda BackSceneryMetatiles,x ;load metatile data from offset of (lsb - 1
 	beq RendFore
 	dec $00	;decrement until counter expires, barring exception
 	bne SceLoop1
-RendFore: ldx ForegroundScenery	;check for foreground data needed or not
+RendFore:
+	ldx ForegroundScenery	;check for foreground data needed or not
 	beq RendTerr	;if not, skip this part
 	ldy FSceneDataOffsets-1,x	;load offset from location offset by header value, then
 	ldx #$00	;reinit X
-SceLoop2: lda ForeSceneryData,y	;load data until counter expires
+SceLoop2:
+	lda ForeSceneryData,y	;load data until counter expires
 	beq NoFore	;do not store if zero found
 	sta MetatileBuffer,x
-NoFore:	iny
+NoFore:
+	iny
 	inx
 	cpx #$0d	;store up to end of metatile buffer
 	bne SceLoop2
-RendTerr: ldy AreaType	;check world type for water level
+RendTerr:
+	ldy AreaType	;check world type for water level
 	bne TerMTile	;if not water level, skip this part
 	lda WorldNumber	;check world number, if not world number eight
 	cmp #World8	;then skip this part
 	bne TerMTile
 	lda #$62	;if set as water level and world number eight,
 	jmp StoreMT	;use castle wall metatile as terrain type
-TerMTile: lda TerrainMetatiles,y	;otherwise get appropriate metatile for area type
+TerMTile:
+	lda TerrainMetatiles,y	;otherwise get appropriate metatile for area type
 	ldy CloudTypeOverride	;check for cloud type override
 	beq StoreMT	;if not set, keep value otherwise
 	lda #$88	;use cloud block terrain
-StoreMT:  sta $07	;store value here
+StoreMT:
+	sta $07	;store value here
 	ldx #$00	;initialize X, use as metatile buffer offset
 	lda TerrainControl	;use yet another value from the header
 	asl	;multiply by 2 and use as yet another offset
 	tay
-TerrLoop: lda TerrainRenderBits,y	;get one of the terrain rendering bit data
+TerrLoop:
+	lda TerrainRenderBits,y	;get one of the terrain rendering bit data
 	sta $00
 	iny	;increment Y and use as offset next time around
 	sty $01
@@ -2703,13 +2729,16 @@ TerrLoop: lda TerrainRenderBits,y	;get one of the terrain rendering bit data
 	lda $00	;if not, mask out all but d3
 	and #%00001000
 	sta $00
-NoCloud2: ldy #$00	;start at beginning of bitmasks
-TerrBChk: lda Bitmasks,y	;load bitmask, then perform AND on contents of first byte
+NoCloud2:
+	ldy #$00	;start at beginning of bitmasks
+TerrBChk:
+	lda Bitmasks,y	;load bitmask, then perform AND on contents of first byte
 	bit $00
 	beq NextTBit	;if not set, skip this part (do not write terrain to buffer)
 	lda $07
 	sta MetatileBuffer,x	;load terrain type metatile number and store into buffer here
-NextTBit: inx	;continue until end of buffer
+NextTBit:
+	inx	;continue until end of buffer
 	cpx #$0d
 	beq RendBBuf	;if we're at the end, break out of this loop
 	lda AreaType	;check world type for underground area
@@ -2719,17 +2748,20 @@ NextTBit: inx	;continue until end of buffer
 	bne EndUChk	;if we're at the bottom of the screen, override
 	lda #$54	;old terrain type with ground level terrain type
 	sta $07
-EndUChk:  iny	;increment bitmasks offset in Y
+EndUChk:
+	iny	;increment bitmasks offset in Y
 	cpy #$08
 	bne TerrBChk	;if not all bits checked, loop back
 	ldy $01
 	bne TerrLoop	;unconditional branch, use Y to load next byte
-RendBBuf: jsr ProcessAreaData	;do the area data loading routine now
+RendBBuf:
+	jsr ProcessAreaData	;do the area data loading routine now
 	lda BlockBufferColumnPos
 	jsr GetBlockBufferAddr	;get block buffer address from where we're at
 	ldx #$00
 	ldy #$00	;init index regs and start at beginning of smaller buffer
-ChkMTLow: sty $00
+ChkMTLow:
+	sty $00
 	lda MetatileBuffer,x	;load stored metatile number
 	and #%11000000	;mask out all but 2 MSB
 	asl
@@ -2740,7 +2772,8 @@ ChkMTLow: sty $00
 	cmp BlockBuffLowBounds,y	;check for certain values depending on bits set
 	bcs StrBlock	;if equal or greater, branch
 	lda #$00	;if less, init value before storing
-StrBlock: ldy $00	;get offset for block buffer
+StrBlock:
+	ldy $00	;get offset for block buffer
 	sta ($06),y	;store value into block buffer
 	tya
 	clc	;add 16 (move down one row) to offset
@@ -2762,7 +2795,8 @@ BlockBuffLowBounds:
 
 ProcessAreaData:
 	ldx #$02	;start at the end of area object buffer
-ProcADLoop: stx ObjectOffset
+ProcADLoop:
+	stx ObjectOffset
 	lda #$00	;reset flag
 	sta BehindAreaParserFlag
 	ldy AreaDataOffset	;get offset of area data pointer
@@ -11431,7 +11465,8 @@ SolidOrClimb:
 	beq NYSpd	;branch ahead and do not play sound
 	lda #Sfx_Bump
 	sta Square1SoundQueue  ;otherwise load bump sound
-NYSpd: lda #$01	;set player's vertical speed to nullify
+NYSpd:
+	lda #$01	;set player's vertical speed to nullify
 	sta Player_Y_Speed	;jump or swim
 
 DoFootCheck:
@@ -11464,7 +11499,8 @@ ChkFootMTile:
 	cmp #$c5
 	bne ContChk	;if player did not touch axe, skip ahead
 	jmp HandleAxeMetatile	;otherwise jump to set modes of operation
-ContChk:  jsr ChkInvisibleMTiles	;do sub to check for hidden coin or 1-up blocks
+ContChk:
+	jsr ChkInvisibleMTiles	;do sub to check for hidden coin or 1-up blocks
 	beq DoPlayerSideCheck	;if either found, branch
 	ldy JumpspringAnimCtrl	;if jumpspring animating right now,
 	bne InitSteP	;branch ahead
@@ -11474,7 +11510,8 @@ ContChk:  jsr ChkInvisibleMTiles	;do sub to check for hidden coin or 1-up blocks
 	lda Player_MovingDir
 	sta $00	;use player's moving direction as temp variable
 	jmp ImpedePlayerMove	;jump to impede player's movement in that direction
-LandPlyr: jsr ChkForLandJumpSpring	;do sub to check for jumpspring metatiles and deal with it
+LandPlyr:
+	jsr ChkForLandJumpSpring	;do sub to check for jumpspring metatiles and deal with it
 	lda #$f0
 	and Player_Y_Position	;mask out lower nybble of player's vertical position
 	sta Player_Y_Position	;and store as new vertical position to land player properly
@@ -11483,7 +11520,8 @@ LandPlyr: jsr ChkForLandJumpSpring	;do sub to check for jumpspring metatiles and
 	sta Player_Y_Speed	;initialize vertical speed and fractional
 	sta Player_Y_MoveForce	;movement force to stop player's vertical movement
 	sta StompChainCounter	;initialize enemy stomp counter
-InitSteP: lda #$00
+InitSteP:
+	lda #$00
 	sta Player_State	;set player's state to normal
 
 DoPlayerSideCheck:
@@ -11509,7 +11547,8 @@ SideCheckLoop:
 	beq BHalf	;if collided with water pipe (top), branch ahead
 	jsr CheckForClimbMTiles	;do sub to see if player bumped into anything climbable
 	bcc CheckSideMTiles	;if not, branch to alternate section of code
-BHalf: ldy $eb	;load block adder offset
+BHalf:
+	ldy $eb	;load block adder offset
 	iny	;increment it
 	lda Player_Y_Position	;get player's vertical position
 	cmp #$08
@@ -11520,7 +11559,8 @@ BHalf: ldy $eb	;load block adder offset
 	bne CheckSideMTiles	;if something found, branch
 	dec $00	;otherwise decrement counter
 	bne SideCheckLoop	;run code until both sides of player are checked
-ExSCH: rts	;leave
+ExSCH:
+	rts	;leave
 
 CheckSideMTiles:
 	jsr ChkInvisibleMTiles	;check for hidden or coin 1-up blocks
@@ -11528,14 +11568,16 @@ CheckSideMTiles:
 	jsr CheckForClimbMTiles	;check for climbable metatiles
 	bcc ContSChk	;if not found, skip and continue with code
 	jmp HandleClimbing	;otherwise jump to handle climbing
-ContSChk: jsr CheckForCoinMTiles	;check to see if player touched coin
+ContSChk:
+	jsr CheckForCoinMTiles	;check to see if player touched coin
 	bcs HandleCoinMetatile	;if so, execute code to erase coin and award to player 1 coin
 	jsr ChkJumpspringMetatiles ;check for jumpspring metatiles
 	bcc ChkPBtm	;if not found, branch ahead to continue cude
 	lda JumpspringAnimCtrl	;otherwise check jumpspring animation control
 	bne ExCSM	;branch to leave if set
 	jmp StopPlayerMove	;otherwise jump to impede player's movement
-ChkPBtm:  ldy Player_State	;get player's state
+ChkPBtm:
+	ldy Player_State	;get player's state
 	cpy #$00	;check for player's state set to normal
 	bne StopPlayerMove	;if not, branch to impede player's movement
 	ldy PlayerFacingDir	;get player's facing direction
@@ -11545,11 +11587,13 @@ ChkPBtm:  ldy Player_State	;get player's state
 	beq PipeDwnS	;if collided with sideways pipe (bottom), branch
 	cmp #$1f	;if collided with water pipe (bottom), continue
 	bne StopPlayerMove	;otherwise branch to impede player's movement
-PipeDwnS: lda Player_SprAttrib	;check player's attributes
+PipeDwnS:
+	lda Player_SprAttrib	;check player's attributes
 	bne PlyrPipe	;if already set, branch, do not play sound again
 	ldy #Sfx_PipeDown_Injury
 	sty Square1SoundQueue	;otherwise load pipedown/injury sound
-PlyrPipe: ora #%00100000
+PlyrPipe:
+	ora #%00100000
 	sta Player_SprAttrib	;set background priority bit in player attributes
 	lda Player_X_Position
 	and #%00001111	;get lower nybble of player's horizontal coordinate
@@ -11558,9 +11602,11 @@ PlyrPipe: ora #%00100000
 	lda ScreenLeft_PageLoc	;load page location for left side of screen
 	beq SetCATmr	;if at page zero, use default offset
 	iny	;otherwise increment offset
-SetCATmr: lda AreaChangeTimerData,y	;set timer for change of area as appropriate
+SetCATmr:
+	lda AreaChangeTimerData,y	;set timer for change of area as appropriate
 	sta ChangeAreaTimer
-ChkGERtn: lda GameEngineSubroutine	;get number of game engine routine running
+ChkGERtn:
+	lda GameEngineSubroutine	;get number of game engine routine running
 	cmp #$07
 	beq ExCSM	;if running player entrance routine or
 	cmp #$08	;player control routine, go ahead and branch to leave
@@ -11568,7 +11614,6 @@ ChkGERtn: lda GameEngineSubroutine	;get number of game engine routine running
 	lda #$02
 	sta GameEngineSubroutine	;otherwise set sideways pipe entry routine to run
 	rts	;and leave
-
 ;--------------------------------
 ;$02 - high nybble of vertical coordinate from block buffer
 ;$04 - low nybble of horizontal coordinate from block buffer
@@ -11576,7 +11621,8 @@ ChkGERtn: lda GameEngineSubroutine	;get number of game engine routine running
 
 StopPlayerMove:
 	jsr ImpedePlayerMove	;stop player's movement
-ExCSM: rts	;leave
+ExCSM:
+	rts	;leave
 
 AreaChangeTimerData:
 	db $a0, $34
@@ -11597,7 +11643,6 @@ ErACM: ldy $02	;load vertical high nybble offset for block buffer
 	lda #$00	;load blank metatile
 	sta ($06),y	;store to remove old contents from block buffer
 	jmp RemoveCoin_Axe  ;update the screen accordingly
-
 ;--------------------------------
 ;$02 - high nybble of vertical coordinate from block buffer
 ;$04 - low nybble of horizontal coordinate from block buffer
@@ -11618,7 +11663,8 @@ HandleClimbing:
 	bcc ExHC	;makes actual physical part of vine or flagpole thinner
 	cpy #$0a	;than 16 pixels
 	bcc ChkForFlagpole
-ExHC: rts	;leave if too far left or too far right
+ExHC:
+	rts	;leave if too far left or too far right
 
 ChkForFlagpole:
 	cmp #$24	;check climbing metatiles
@@ -11651,8 +11697,10 @@ ChkFlagpoleYPosLoop:
 	bcs MtchF	;if player's => current, branch to use current offset
 	dex	;otherwise decrement offset to use
 	bne ChkFlagpoleYPosLoop	;do this until all data is checked (use last one if all checked)
-MtchF: stx FlagpoleScore	;store offset here to be used later
-RunFR: lda #$04
+MtchF:
+	stx FlagpoleScore	;store offset here to be used later
+RunFR:
+	lda #$04
 	sta GameEngineSubroutine	;set value to run flagpole slide routine
 	jmp PutPlayerOnVine	;jump to end of climbing code
 
@@ -11678,7 +11726,8 @@ PutPlayerOnVine:
 	bcs SetVXPl	;if 16 or more pixels difference, do not alter facing direction
 	lda #$02
 	sta PlayerFacingDir	;otherwise force player to face left
-SetVXPl: ldy PlayerFacingDir	;get current facing direction, use as offset
+SetVXPl:
+	ldy PlayerFacingDir	;get current facing direction, use as offset
 	lda $06	;get low byte of block buffer address
 	asl
 	asl	;move low nybble to high
@@ -11693,16 +11742,16 @@ SetVXPl: ldy PlayerFacingDir	;get current facing direction, use as offset
 	clc
 	adc ClimbPLocAdder-1,y	;add depending on facing location
 	sta Player_PageLoc	;store as player's page location
-ExPVne:	rts	;finally, we're done!
-
+ExPVne:
+	rts	;finally, we're done!
 ;--------------------------------
 
 ChkInvisibleMTiles:
 	cmp #$5f	;check for hidden coin block
 	beq ExCInvT	;branch to leave if found
 	cmp #$60	;check for hidden 1-up block
-ExCInvT: rts	;leave with zero flag set if either found
-
+ExCInvT:
+	rts	;leave with zero flag set if either found
 ;--------------------------------
 ;$00-$01 - used to hold bottom right and bottom left metatiles (in that order)
 ;$00 - used as flag by ImpedePlayerMove to restrict specific movement
@@ -11718,7 +11767,8 @@ ChkForLandJumpSpring:
 	sta JumpspringTimer	;set jumpspring timer to be used later
 	lsr
 	sta JumpspringAnimCtrl	;set jumpspring animation control to start animating
-ExCJSp: rts		;and leave
+ExCJSp:
+	rts		;and leave
 
 ChkJumpspringMetatiles:
 	cmp #$67	;check for top jumpspring metatile
@@ -11726,8 +11776,10 @@ ChkJumpspringMetatiles:
 	cmp #$68	;check for bottom jumpspring metatile
 	clc	;clear carry flag
 	bne NoJSFnd   ;branch to use cleared carry if not found
-JSFnd:	sec	;set carry if found
-NoJSFnd: rts	;leave
+JSFnd:
+	sec	;set carry if found
+NoJSFnd:
+	rts	;leave
 
 HandlePipeEntry:
 	lda Up_Down_Buttons	;check saved controller bits from earlier
@@ -11760,7 +11812,8 @@ HandlePipeEntry:
 	cmp #$a0
 	bcc GetWNum	;if player at middle, but not too far right, use offset and skip
 	inx	;otherwise increment for last pipe
-GetWNum: ldy WarpZoneNumbers,x	;get warp zone numbers
+GetWNum:
+	ldy WarpZoneNumbers,x	;get warp zone numbers
 	dey	;decrement for use as world number
 	sty WorldNumber	;store as world number and offset
 	ldx WorldAddrOffsets,y	;get offset to where this world's area offsets are
@@ -11775,7 +11828,8 @@ GetWNum: ldy WarpZoneNumbers,x	;get warp zone numbers
 	sta AltEntranceControl	;initialize mode of entry
 	inc Hidden1UpFlag	;set flag for hidden 1-up blocks
 	inc FetchNewGameTimerFlag ;set flag to load new game timer
-ExPipeE: rts	;leave!!!
+ExPipeE:
+	rts	;leave!!!
 
 ImpedePlayerMove:
 	lda #$00	;initialize value here
@@ -11788,30 +11842,33 @@ ImpedePlayerMove:
 	bmi ExIPM	;branch to invert bit and leave
 	lda #$ff	;otherwise load A with value to be used later
 	jmp NXSpd	;and jump to affect movement
-RImpd: ldx #$02	;return $02 to X
+RImpd:
+	ldx #$02	;return $02 to X
 	cpy #$01	;if player moving to the right,
 	bpl ExIPM	;branch to invert bit and leave
 	lda #$01	;otherwise load A with value to be used here
-NXSpd: ldy #$10
+NXSpd:
+	ldy #$10
 	sty SideCollisionTimer	;set timer of some sort
 	ldy #$00
 	sty Player_X_Speed	;nullify player's horizontal speed
 	cmp #$00	;if value set in A not set to $ff,
 	bpl PlatF	;branch ahead, do not decrement Y
 	dey	;otherwise decrement Y now
-PlatF: sty $00	;store Y as high bits of horizontal adder
+PlatF:
+	sty $00	;store Y as high bits of horizontal adder
 	clc
 	adc Player_X_Position	;add contents of A to player's horizontal
 	sta Player_X_Position	;position to move player left or right
 	lda Player_PageLoc
 	adc $00	;add high bits and carry to
 	sta Player_PageLoc	;page location if necessary
-ExIPM: txa	;invert contents of X
+ExIPM:
+	txa	;invert contents of X
 	eor #$ff
 	and Player_CollisionBits	;mask out bit that was set here
 	sta Player_CollisionBits	;store to clear bit
 	rts
-
 ;--------------------------------
 
 SolidMTileUpperExt:
@@ -11837,7 +11894,8 @@ CheckForCoinMTiles:
 	beq CoinSd	;branch if found
 	clc	;otherwise clear carry and leave
 	rts
-CoinSd:	lda #Sfx_CoinGrab
+CoinSd:
+	lda #Sfx_CoinGrab
 	sta Square2SoundQueue ;load coin grab sound and leave
 	rts
 
@@ -11849,8 +11907,8 @@ GetMTileAttrib:
 	rol
 	tax	;use as offset for metatile data
 	tya	;get original metatile value back
-ExEBG: rts	;leave
-
+ExEBG:
+	rts	;leave
 ;-------------------------------------------------------------------------------------
 ;$06-$07 - address from block buffer routine
 
@@ -11877,16 +11935,19 @@ DoIDCheckBGColl:
 	cpy #GreenParatroopaJump ;check for some other enemy object
 	bne HBChk	;branch if not found
 	jmp EnemyJump	;otherwise jump elsewhere
-HBChk: cpy #HammerBro	;check for hammer bro
+HBChk:
+	cpy #HammerBro	;check for hammer bro
 	bne CInvu	;branch if not found
 	jmp HammerBroBGColl	;otherwise jump elsewhere
-CInvu: cpy #Spiny	;if enemy object is spiny, branch
+CInvu:
+	cpy #Spiny	;if enemy object is spiny, branch
 	beq YesIn
 	cpy #PowerUpObject	;if special power-up object, branch
 	beq YesIn
 	cpy #$07	;if enemy object =>$07, branch to leave
 	bcs ExEBGChk
-YesIn: jsr ChkUnderEnemy	;if enemy object < $07, or = $12 or $2e, do this sub
+YesIn:
+	jsr ChkUnderEnemy	;if enemy object < $07, or = $12 or $2e, do this sub
 	bne HandleEToBGCollision ;if block underneath enemy, branch
 
 NoEToBGCollision:
@@ -11923,9 +11984,11 @@ ChkToStunEnemies:
 	bcc Demote	;always fail this test because A will still have vertical
 	cmp #PiranhaPlant	;coordinate from previous addition, also these comparisons
 	bcc SetStun	;are only necessary if branching from $d7a1
-Demote:	and #%00000001	;erase all but LSB, essentially turning enemy object
+Demote:
+	and #%00000001	;erase all but LSB, essentially turning enemy object
 	sta Enemy_ID,x	;into green or red koopa troopa to demote them
-SetStun:  lda Enemy_State,x	;load enemy state
+SetStun:
+	lda Enemy_State,x	;load enemy state
 	and #%11110000	;save high nybble
 	ora #%00000010
 	sta Enemy_State,x	;set d1 of enemy state
@@ -11937,23 +12000,27 @@ SetStun:  lda Enemy_State,x	;load enemy state
 	lda #$fd	;set default vertical speed
 	ldy AreaType
 	bne SetNotW	;if area type not water, set as speed, otherwise
-SetWYSpd: lda #$ff	;change the vertical speed
-SetNotW:  sta Enemy_Y_Speed,x	;set vertical speed now
+SetWYSpd:
+	lda #$ff	;change the vertical speed
+SetNotW:
+	sta Enemy_Y_Speed,x	;set vertical speed now
 	ldy #$01
 	jsr PlayerEnemyDiff	;get horizontal difference between player and enemy object
 	bpl ChkBBill	;branch if enemy is to the right of player
 	iny	;increment Y if not
-ChkBBill: lda Enemy_ID,x
+ChkBBill:
+	lda Enemy_ID,x
 	cmp #BulletBill_CannonVar	;check for bullet bill (cannon variant)
 	beq NoCDirF
 	cmp #BulletBill_FrenzyVar	;check for bullet bill (frenzy variant)
 	beq NoCDirF	;branch if either found, direction does not change
 	sty Enemy_MovingDir,x	;store as moving direction
-NoCDirF:  dey	;decrement and use as offset
+NoCDirF:
+	dey	;decrement and use as offset
 	lda EnemyBGCXSpdData,y	;get proper horizontal speed
 	sta Enemy_X_Speed,x	;and store, then leave
-ExEBGChk: rts
-
+ExEBGChk:
+	rts
 ;--------------------------------
 ;$04 - low nybble of vertical coordinate from block buffer routine
 
@@ -11969,7 +12036,8 @@ LandEnemyProperly:
 	lda Enemy_State,x
 	asl	;branch if d7 in enemy state is not set
 	bcc ChkLandedEnemyState
-SChkA: jmp DoEnemySideCheck	;if lower nybble < $0d, d7 set but d6 not set, jump here
+SChkA:
+	jmp DoEnemySideCheck	;if lower nybble < $0d, d7 set but d6 not set, jump here
 
 ChkLandedEnemyState:
 	lda Enemy_State,x	;if enemy in normal state, branch back to jump here
@@ -11986,11 +12054,13 @@ ChkLandedEnemyState:
 	cpy #Spiny
 	bne SetForStn	;branch if not found
 	lda #$00	;set timer for $00 if spiny
-SetForStn: sta EnemyIntervalTimer,x	;set timer here
+SetForStn:
+	sta EnemyIntervalTimer,x	;set timer here
 	lda #$03	;set state here, apparently used to render
 	sta Enemy_State,x	;upside-down koopas and buzzy beetles
 	jsr EnemyLanding	;then land it properly
-ExSteChk:  rts	;then leave
+ExSteChk:
+	rts	;then leave
 
 ProcEnemyDirection:
 	lda Enemy_ID,x	;check enemy identifier for goomba
@@ -12005,11 +12075,13 @@ ProcEnemyDirection:
 	lda FrameCounter
 	and #%00000111	;if timed appropriately, spiny will skip over
 	beq LandEnemyInitState	;trying to face the player
-InvtD:	ldy #$01	;load 1 for enemy to face the left (inverted here)
+InvtD:
+	ldy #$01	;load 1 for enemy to face the left (inverted here)
 	jsr PlayerEnemyDiff	;get horizontal difference between player and enemy
 	bpl CNwCDir	;if enemy to the right of player, branch
 	iny	;if to the left, increment by one for enemy to face right (inverted)
-CNwCDir: tya
+CNwCDir:
+	tya
 	cmp Enemy_MovingDir,x	;compare direction in A with current direction in memory
 	bne LandEnemyInitState
 	jsr ChkForBump_HammerBroJ ;if equal, not facing in correct dir, do sub to turn around
@@ -12028,7 +12100,6 @@ NMovShellFallBit:
 	and #%10111111	;and store, then leave
 	sta Enemy_State,x
 	rts
-
 ;--------------------------------
 
 ChkForRedKoopa:
@@ -12044,9 +12115,10 @@ Chk2MSBSt:	lda Enemy_State,x	;save enemy state into Y
 	lda Enemy_State,x
 	ora #%01000000	;set d6
 	jmp SetD6Ste	;jump ahead of this part
-GetSteFromD: lda EnemyBGCStateData,y   ;load new enemy state with old as offset
-SetD6Ste:	sta Enemy_State,x	;set as new state
-
+GetSteFromD:
+	lda EnemyBGCStateData,y   ;load new enemy state with old as offset
+SetD6Ste:
+	sta Enemy_State,x	;set as new state
 ;--------------------------------
 ;$00 - used to store bitmask (not used but initialized here)
 ;$eb - used in DoEnemySideCheck as counter and to compare moving directions
@@ -12058,7 +12130,8 @@ DoEnemySideCheck:
 	ldy #$16	;start by finding block to the left of enemy ($00,$14)
 	lda #$02	;set value here in what is also used as
 	sta $eb	;OAM data offset
-SdeCLoop: lda $eb	;check value
+SdeCLoop:
+	lda $eb	;check value
 	cmp Enemy_MovingDir,x	;compare value against moving direction
 	bne NextSdeC	;branch if different and do not seek block there
 	lda #$01	;set flag in A for save horizontal coordinate
@@ -12066,11 +12139,13 @@ SdeCLoop: lda $eb	;check value
 	beq NextSdeC	;if nothing found, branch
 	jsr ChkForNonSolids	;check for non-solid blocks
 	bne ChkForBump_HammerBroJ	;branch if not found
-NextSdeC: dec $eb	;move to the next direction
+NextSdeC:
+	dec $eb	;move to the next direction
 	iny
 	cpy #$18	;increment Y, loop only if Y < $18, thus we check
 	bcc SdeCLoop	;enemy ($00, $14) and ($10, $14) pixel coordinates
-ExESdeC:  rts
+ExESdeC:
+	rts
 
 ChkForBump_HammerBroJ:
 	cpx #$05	;check if we're on the special use slot
@@ -12090,7 +12165,6 @@ NoBump: lda Enemy_ID,x	;check for hammer bro
 
 InvEnemyDir:
 	jmp RXSpd	;jump to turn the enemy around
-
 ;--------------------------------
 ;$00 - used to hold horizontal difference between player and enemy
 
@@ -12102,7 +12176,6 @@ PlayerEnemyDiff:
 	lda Enemy_PageLoc,x
 	sbc Player_PageLoc	;subtract borrow, then leave
 	rts
-
 ;--------------------------------
 
 EnemyLanding:
@@ -12135,8 +12208,8 @@ EnemyJump:
 	jsr EnemyLanding	;change vertical coordinate and speed
 	lda #$fd
 	sta Enemy_Y_Speed,x	;make the paratroopa jump again
-DoSide: jmp DoEnemySideCheck  ;check for horizontal blockage, then leave
-
+DoSide:
+	jmp DoEnemySideCheck  ;check for horizontal blockage, then leave
 ;--------------------------------
 
 HammerBroBGColl:
@@ -12181,8 +12254,8 @@ ChkForNonSolids:
 	cmp #$5f	;hidden coin block?
 	beq NSFnd
 	cmp #$60	;hidden 1-up block?
-NSFnd: rts
-
+NSFnd:
+	rts
 ;-------------------------------------------------------------------------------------
 
 FireballBGCollision:
@@ -12217,7 +12290,6 @@ InitFireballExplode:
 	lda #Sfx_Bump
 	sta Square1SoundQueue	;load bump sound
 	rts		;leave
-
 ;-------------------------------------------------------------------------------------
 ;$00 - used to hold one of bitmasks, or offset
 ;$01 - used for relative X coordinate, also used to store middle screen page location
@@ -12253,7 +12325,8 @@ GetMiscBoundBox:
 	adc #$09
 	tax
 	ldy #$06	;set offset for relative coordinates
-FBallB: jsr BoundingBoxCore	;get bounding box coordinates
+FBallB:
+	jsr BoundingBoxCore	;get bounding box coordinates
 	jmp CheckRightScreenBBox  ;jump to handle any offscreen coordinates
 
 GetEnemyBoundBox:
@@ -12278,7 +12351,8 @@ GetMaskedOffScrBits:
 	ora $01
 	beq CMBits	;if precisely at the left edge, branch
 	ldy $00	;if to the right of left edge, use value in $00 for A
-CMBits: tya		;otherwise use contents of Y
+CMBits:
+	tya		;otherwise use contents of Y
 	and Enemy_OffscreenBits	;preserve bitwise whatever's in here
 	sta EnemyOffscrBitsMasked,x ;save masked offscreen bits here
 	bne MoveBoundBoxOffscreen	;if anything set here, branch
@@ -12369,8 +12443,10 @@ CheckRightScreenBBox:
 	ldx BoundingBox_UL_XPos,y  ;check left-side edge of bounding box for offscreen
 	bmi SORte	;coordinates, and branch if still on the screen
 	sta BoundingBox_UL_XPos,y  ;store offscreen value for left side
-SORte: sta BoundingBox_DR_XPos,y  ;store offscreen value for right side
-NoOfs: ldx ObjectOffset	;get object offset and leave
+SORte:
+	sta BoundingBox_DR_XPos,y  ;store offscreen value for right side
+NoOfs:
+	ldx ObjectOffset	;get object offset and leave
 	rts
 
 CheckLeftScreenBBox:
@@ -12382,8 +12458,10 @@ CheckLeftScreenBBox:
 	ldx BoundingBox_DR_XPos,y  ;check right-side edge of bounding box for offscreen
 	bpl SOLft	;coordinates, branch if still onscreen
 	sta BoundingBox_DR_XPos,y  ;store offscreen value for right side
-SOLft:	sta BoundingBox_UL_XPos,y  ;store offscreen value for left side
-NoOfs2: ldx ObjectOffset	;get object offset and leave
+SOLft:
+	sta BoundingBox_UL_XPos,y  ;store offscreen value for left side
+NoOfs2:
+	ldx ObjectOffset	;get object offset and leave
 	rts
 
 ;-------------------------------------------------------------------------------------
@@ -12480,8 +12558,10 @@ BlockBufferChk_FBall:
 	clc
 	adc #$07	;add seven bytes to use
 	tax
-ResJmpM: lda #$00	;set A to return vertical coordinate
-BBChk_E: jsr BlockBufferCollision  ;do collision detection subroutine for sprite object
+ResJmpM:
+	lda #$00	;set A to return vertical coordinate
+BBChk_E:
+	jsr BlockBufferCollision  ;do collision detection subroutine for sprite object
 	ldx ObjectOffset	;get object offset
 	cmp #$00	;check to see if object bumped into anything
 	rts
@@ -12545,17 +12625,16 @@ BlockBufferCollision:
 	bne RetXC	;if A = 1, branch
 	lda SprObject_Y_Position,x  ;if A = 0, load vertical coordinate
 	jmp RetYC	;and jump
-RetXC: lda SprObject_X_Position,x  ;otherwise load horizontal coordinate
-RetYC: and #%00001111	;and mask out high nybble
+RetXC:
+	lda SprObject_X_Position,x  ;otherwise load horizontal coordinate
+RetYC:
+	and #%00001111	;and mask out high nybble
 	sta $04	;store masked out result here
 	lda $03	;get saved content of block buffer
 	rts		;and leave
-
 ;-------------------------------------------------------------------------------------
-
 ;unused byte
 	db $ff
-
 ;-------------------------------------------------------------------------------------
 ;$00 - offset to vine Y coordinate adder
 ;$02 - offset to sprite data
@@ -12590,7 +12669,8 @@ DrawVine:
 	sta Sprite_Attributes+12,y
 	sta Sprite_Attributes+20,y
 	ldx #$05	;set tiles for six sprites
-VineTL:	lda #$e1	;set tile number for sprite
+VineTL:
+	lda #$e1	;set tile number for sprite
 	sta Sprite_Tilenumber,y
 	iny	;move offset to next sprite data
 	iny
@@ -12603,15 +12683,18 @@ VineTL:	lda #$e1	;set tile number for sprite
 	bne SkpVTop	;if offset not zero, skip this part
 	lda #$e0
 	sta Sprite_Tilenumber,y	;set other tile number for top of vine
-SkpVTop: ldx #$00	;start with the first sprite again
-ChkFTop: lda VineStart_Y_Position	;get original starting vertical coordinate
+SkpVTop:
+	ldx #$00	;start with the first sprite again
+ChkFTop:
+	lda VineStart_Y_Position	;get original starting vertical coordinate
 	sec
 	sbc Sprite_Y_Position,y	;subtract top-most sprite's Y coordinate
 	cmp #$64	;if two coordinates are less than 100/$64 pixels
 	bcc NextVSp	;apart, skip this to leave sprite alone
 	lda #$f8
 	sta Sprite_Y_Position,y	;otherwise move sprite offscreen
-NextVSp: iny	;move offset to next OAM data
+NextVSp:
+	iny	;move offset to next OAM data
 	iny
 	iny
 	iny
@@ -12623,7 +12706,8 @@ NextVSp: iny	;move offset to next OAM data
 
 SixSpriteStacker:
 	ldx #$06	;do six sprites
-StkLp: sta Sprite_Data,y  ;store X or Y coordinate into OAM data
+StkLp:
+	sta Sprite_Data,y  ;store X or Y coordinate into OAM data
 	clc
 	adc #$08	;add eight pixels
 	iny
@@ -12634,7 +12718,6 @@ StkLp: sta Sprite_Data,y  ;store X or Y coordinate into OAM data
 	bne StkLp	;do this until all sprites are done
 	ldy $02	;get saved OAM data offset and leave
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 FirstSprXPos:
@@ -12666,14 +12749,17 @@ DrawHammer:
 	and #%01111111	;mask out d7
 	cmp #$01	;check to see if set to 1 yet
 	beq GetHPose	;if so, branch
-ForceHPose: ldx #$00	;reset offset here
+ForceHPose:
+	ldx #$00	;reset offset here
 	beq RenderH	;do unconditional branch to rendering part
-GetHPose:	lda FrameCounter	;get frame counter
+GetHPose:
+	lda FrameCounter	;get frame counter
 	lsr		;move d3-d2 to d1-d0
 	lsr
 	and #%00000011	;mask out all but d1-d0 (changes every four frames)
 	tax		;use as timing offset
-RenderH:	lda Misc_Rel_YPos	;get relative vertical coordinate
+RenderH:
+	lda Misc_Rel_YPos	;get relative vertical coordinate
 	clc
 	adc FirstSprYPos,x	;add first sprite vertical adder based on offset
 	sta Sprite_Y_Position,y	;store as sprite Y coordinate for first sprite
@@ -12702,8 +12788,8 @@ RenderH:	lda Misc_Rel_YPos	;get relative vertical coordinate
 	sta Misc_State,x	;otherwise nullify misc object state
 	lda #$f8
 	jsr DumpTwoSpr	;do sub to move hammer sprites offscreen
-NoHOffscr:	rts		;leave
-
+NoHOffscr:
+	rts		;leave
 ;-------------------------------------------------------------------------------------
 ;$00-$01 - used to hold tile numbers ($01 addressed in draw floatey number part)
 ;$02 - used to hold Y coordinate for floatey number
@@ -12766,7 +12852,6 @@ ChkFlagOffscreen:
 	lda Enemy_OffscreenBits	;get offscreen bits
 	and #%00001110	;mask out all but d3-d1
 	beq ExitDumpSpr	;if none of these bits set, branch to leave
-
 ;-------------------------------------------------------------------------------------
 
 MoveSixSpritesOffscreen:
@@ -12788,7 +12873,6 @@ DumpTwoSpr:
 
 ExitDumpSpr:
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 DrawLargePlatform:
@@ -12836,41 +12920,47 @@ SetPlatformTilenum:
 	bcc SChk2
 	lda #$f8	;if d7 was set, move first sprite offscreen
 	sta Sprite_Y_Position,y
-SChk2:	pla		;get bits from stack
+SChk2:
+	pla		;get bits from stack
 	asl		;rotate d6 into carry
 	pha		;save to stack
 	bcc SChk3
 	lda #$f8	;if d6 was set, move second sprite offscreen
 	sta Sprite_Y_Position+4,y
-SChk3:	pla		;get bits from stack
+SChk3:
+	pla		;get bits from stack
 	asl		;rotate d5 into carry
 	pha		;save to stack
 	bcc SChk4
 	lda #$f8	;if d5 was set, move third sprite offscreen
 	sta Sprite_Y_Position+8,y
-SChk4:	pla		;get bits from stack
+SChk4:
+	pla		;get bits from stack
 	asl		;rotate d4 into carry
 	pha		;save to stack
 	bcc SChk5
 	lda #$f8	;if d4 was set, move fourth sprite offscreen
 	sta Sprite_Y_Position+12,y
-SChk5:	pla		;get bits from stack
+SChk5:
+	pla		;get bits from stack
 	asl		;rotate d3 into carry
 	pha		;save to stack
 	bcc SChk6
 	lda #$f8	;if d3 was set, move fifth sprite offscreen
 	sta Sprite_Y_Position+16,y
-SChk6:	pla		;get bits from stack
+SChk6:
+	pla		;get bits from stack
 	asl		;rotate d2 into carry
 	bcc SLChk	;save to stack
 	lda #$f8
 	sta Sprite_Y_Position+20,y	;if d2 was set, move sixth sprite offscreen
-SLChk:	lda Enemy_OffscreenBits	;check d7 of offscreen bits
+SLChk:
+	lda Enemy_OffscreenBits	;check d7 of offscreen bits
 	asl		;and if d7 is not set, skip sub
 	bcc ExDLPl
 	jsr MoveSixSpritesOffscreen ;otherwise branch to move all sprites offscreen
-ExDLPl: rts
-
+ExDLPl:
+	rts
 ;-------------------------------------------------------------------------------------
 
 DrawFloateyNumber_Coin:
@@ -12878,7 +12968,8 @@ DrawFloateyNumber_Coin:
 	lsr	;divide by 2
 	bcs NotRsNum	;branch if d0 not set to raise number every other frame
 	dec Misc_Y_Position,x	;otherwise, decrement vertical coordinate
-NotRsNum: lda Misc_Y_Position,x	;get vertical coordinate
+NotRsNum:
+	lda Misc_Y_Position,x	;get vertical coordinate
 	jsr DumpTwoSpr	;dump into both sprites
 	lda Misc_Rel_XPos	;get relative horizontal coordinate
 	sta Sprite_X_Position,y	;store as X coordinate for first sprite
@@ -12923,8 +13014,8 @@ JCoinGfxHandler:
 	lda #$82
 	sta Sprite_Attributes+4,y	;set attribute byte with vertical flip in second sprite
 	ldx ObjectOffset	;get misc object offset
-ExJCGfx: rts		;leave
-
+ExJCGfx:
+	rts		;leave
 ;-------------------------------------------------------------------------------------
 ;$00-$01 - used to hold tiles for drawing the power-up, $00 also used to hold power-up type
 ;$02 - used to hold bottom row Y position
@@ -12996,8 +13087,8 @@ FlipPUpRightSide:
 	lda Sprite_Attributes+12,y
 	ora #%01000000	;set horizontal flip bit for bottom right sprite
 	sta Sprite_Attributes+12,y ;note these are only done for fire flower and star power-ups
-PUpOfs: jmp SprObjectOffscrChk	;jump to check to see if power-up is offscreen at all, then leave
-
+PUpOfs:
+	jmp SprObjectOffscrChk	;jump to check to see if power-up is offscreen at all, then leave
 ;-------------------------------------------------------------------------------------
 ;$00-$01 - used in DrawEnemyObjRow to hold sprite tile numbers
 ;$02 - used to store Y position
@@ -13116,7 +13207,8 @@ CheckForBulletBillCV:
 	ldy EnemyFrameTimer,x	;get timer for enemy object
 	beq SBBAt	;if expired, do not set priority bit
 	ora #%00100000	;otherwise do so
-SBBAt: sta $04	;set new sprite attributes
+SBBAt:
+	sta $04	;set new sprite attributes
 	ldy #$00	;nullify saved enemy state both in Y and in
 	sty $ed	;memory location here
 	lda #$08	;set specific value to unconditionally branch once
@@ -13145,7 +13237,8 @@ CheckBowserGfxFlag:
 	cmp #$01
 	beq SBwsrGfxOfs
 	iny	;otherwise draw bowser's rear
-SBwsrGfxOfs: sty $ef
+SBwsrGfxOfs:
+	sty $ef
 
 CheckForGoomba:
 	ldy $ef	;check value for goomba object
@@ -13156,7 +13249,8 @@ CheckForGoomba:
 	bcc GmbaAnim	;if not defeated, go ahead and animate
 	ldx #$04	;if defeated, write new value here
 	stx $ec
-GmbaAnim: and #%00100000	;check for d5 set in enemy object state
+GmbaAnim:
+	and #%00100000	;check for d5 set in enemy object state
 	ora TimerControl	;or timer disable flag set
 	bne CheckBowserFront	;if either condition true, do not animate goomba
 	lda FrameCounter
@@ -13180,7 +13274,8 @@ CheckBowserFront:
 	lda BowserBodyControls	;check bowser's body control bits
 	bpl ChkFrontSte	;branch if d7 not set (control's bowser's mouth)
 	ldx #$de	;otherwise load offset for second frame
-ChkFrontSte: lda $ed	;check saved enemy state
+ChkFrontSte:
+	lda $ed	;check saved enemy state
 	and #%00100000	;if bowser not defeated, do not set flag
 	beq DrawBowser
 
@@ -13195,7 +13290,8 @@ CheckBowserRear:
 	and #$01
 	beq ChkRearSte	;branch if d0 not set (control's bowser's feet)
 	ldx #$e4	;otherwise load offset for second frame
-ChkRearSte: lda $ed	;check saved enemy state
+ChkRearSte:
+	lda $ed	;check saved enemy state
 	and #%00100000	;if bowser not defeated, do not set flag
 	beq DrawBowser
 	lda $02	;subtract 16 pixels from
@@ -13214,7 +13310,8 @@ CheckForSpiny:
 	sta $03	;set enemy direction to reverse sprites horizontally
 	lda #$05
 	sta $ec	;set enemy state
-NotEgg: jmp CheckForHammerBro  ;skip a big chunk of this if we found spiny but not in egg
+NotEgg:
+	jmp CheckForHammerBro  ;skip a big chunk of this if we found spiny but not in egg
 
 CheckForLakitu:
 	cpx #$90	;check value for lakitu's offset loaded
@@ -13226,7 +13323,8 @@ CheckForLakitu:
 	cmp #$10	;check timer to see if we've reached a certain range
 	bcs NoLAFr	;branch if not
 	ldx #$96	;if d6 not set and timer in range, load alt frame for lakitu
-NoLAFr: jmp CheckDefeatedState	;skip this next part if we found lakitu but alt frame not needed
+NoLAFr:
+	jmp CheckDefeatedState	;skip this next part if we found lakitu but alt frame not needed
 
 CheckUpsideDownShell:
 	lda $ef	;check for enemy object => $04
@@ -13399,7 +13497,8 @@ CheckForESymmetry:
 	cmp #$05	;check for hammer bro object
 	bne ContES
 	jmp SprObjectOffscrChk	;jump if found
-ContES: cmp #Bloober	;check for bloober object
+ContES:
+	cmp #Bloober	;check for bloober object
 	beq MirrorEnemyGfx
 	cmp #PiranhaPlant	;check for piranha plant object
 	beq MirrorEnemyGfx
@@ -13409,11 +13508,13 @@ ContES: cmp #Bloober	;check for bloober object
 	bne ESRtnr	;branch closer if not found
 	cpx #$05	;check spiny's state
 	bne CheckToMirrorLakitu	;branch if not an egg, otherwise
-ESRtnr: cmp #$15	;check for princess/mushroom retainer object
+ESRtnr:
+	cmp #$15	;check for princess/mushroom retainer object
 	bne SpnySC
 	lda #$42	;set horizontal flip on bottom right sprite
 	sta Sprite_Attributes+20,y	;note that palette bits were already set earlier
-SpnySC: cpx #$02	;if alternate enemy state set to 1 or 0, branch
+SpnySC:
+	cpx #$02	;if alternate enemy state set to 1 or 0, branch
 	bcc CheckToMirrorLakitu
 
 MirrorEnemyGfx:
@@ -13428,7 +13529,8 @@ MirrorEnemyGfx:
 	cpx #$05	;check for state used by spiny's egg
 	bne EggExc	;if alternate state not set to $05, branch
 	ora #%10000000	;otherwise set vertical flip
-EggExc: sta Sprite_Attributes+4,y	;set bits of right sprite column
+EggExc:
+	sta Sprite_Attributes+4,y	;set bits of right sprite column
 	sta Sprite_Attributes+12,y	;of enemy object sprite data
 	sta Sprite_Attributes+20,y
 	cpx #$04	;check alternate enemy state
@@ -13460,7 +13562,8 @@ CheckToMirrorLakitu:
 	and #%10000001
 	sta Sprite_Attributes+8,y	;preserve vertical flip and palette bits for left sprite
 	bcc SprObjectOffscrChk	;unconditional branch
-NVFLak: lda Sprite_Attributes,y	;get first row left sprite attributes
+NVFLak:
+	lda Sprite_Attributes,y	;get first row left sprite attributes
 	and #%10000001
 	sta Sprite_Attributes,y	;save vertical flip and palette bits
 	lda Sprite_Attributes+4,y	;get first row right sprite attributes
@@ -13488,26 +13591,30 @@ SprObjectOffscrChk:
 	bcc LcChk	;branch if not set
 	lda #$04	;set for right column sprites
 	jsr MoveESprColOffscreen  ;and move them offscreen
-LcChk:	pla	;get from stack
+LcChk:
+	pla	;get from stack
 	lsr	;move d3 to carry
 	pha	;save to stack
 	bcc Row3C	;branch if not set
 	lda #$00	;set for left column sprites,
 	jsr MoveESprColOffscreen  ;move them offscreen
-Row3C:	pla	;get from stack again
+Row3C:
+	pla	;get from stack again
 	lsr	;move d5 to carry this time
 	lsr
 	pha	;save to stack again
 	bcc Row23C	;branch if carry not set
 	lda #$10	;set for third row of sprites
 	jsr MoveESprRowOffscreen  ;and move them offscreen
-Row23C:	pla	;get from stack
+Row23C:
+	pla	;get from stack
 	lsr	;move d6 into carry
 	pha	;save to stack
 	bcc AllRowC
 	lda #$08	;set for second and third rows
 	jsr MoveESprRowOffscreen  ;move them offscreen
-AllRowC: pla	;get from stack once more
+AllRowC:
+	pla	;get from stack once more
 	lsr	;move d7 into carry
 	bcc ExEGHandler
 	jsr MoveESprRowOffscreen  ;move all sprites offscreen (A should be 0 by now)
@@ -13545,7 +13652,6 @@ MoveESprColOffscreen:
 	jsr MoveColOffscreen	;move first and second row sprites in column offscreen
 	sta Sprite_Data+16,y	;move third row sprite in column offscreen
 	rts
-
 ;-------------------------------------------------------------------------------------
 ;$00-$01 - tile numbers
 ;$02 - relative Y position
@@ -13567,7 +13673,8 @@ DrawBlock:
 	sta $03	;set horizontal flip bit here (will not be used)
 	ldy Block_SprDataOffset,x	;get sprite data offset
 	ldx #$00	;reset X for use as offset to tile data
-DBlkLoop:  lda DefaultBlockObjTiles,x	;get left tile number
+DBlkLoop:
+	lda DefaultBlockObjTiles,x	;get left tile number
 	sta $00	;set here
 	lda DefaultBlockObjTiles+1,x	;get right tile number
 	jsr DrawOneSpriteRow	;do sub to write tile numbers to first row of sprites
@@ -13581,7 +13688,8 @@ DBlkLoop:  lda DefaultBlockObjTiles,x	;get left tile number
 	lda #$86
 	sta Sprite_Tilenumber,y	;otherwise remove brick tiles with lines
 	sta Sprite_Tilenumber+4,y	;and replace then with lineless brick tiles
-ChkRep:	lda Block_Metatile,x	;check replacement metatile
+ChkRep:
+	lda Block_Metatile,x	;check replacement metatile
 	cmp #$c4	;if not used block metatile, then
 	bne BlkOffscr	;branch ahead to use current graphics
 	lda #$87	;set A for used block tile
@@ -13593,7 +13701,8 @@ ChkRep:	lda Block_Metatile,x	;check replacement metatile
 	dex	;check for ground level type area again
 	beq SetBFlip	;if found, use current palette bits
 	lsr	;otherwise set to $01
-SetBFlip:  ldx ObjectOffset	;put block object offset back in X
+SetBFlip:
+	ldx ObjectOffset	;put block object offset back in X
 	sta Sprite_Attributes,y	;store attribute byte as-is in first sprite
 	ora #%01000000
 	sta Sprite_Attributes+4,y	;set horizontal flip bit for second sprite
@@ -13601,23 +13710,26 @@ SetBFlip:  ldx ObjectOffset	;put block object offset back in X
 	sta Sprite_Attributes+12,y	;set both flip bits for fourth sprite
 	and #%10000011
 	sta Sprite_Attributes+8,y	;set vertical flip bit for third sprite
-BlkOffscr: lda Block_OffscreenBits	;get offscreen bits for block object
+BlkOffscr:
+	lda Block_OffscreenBits	;get offscreen bits for block object
 	pha	;save to stack
 	and #%00000100	;check to see if d2 in offscreen bits are set
 	beq PullOfsB	;if not set, branch, otherwise move sprites offscreen
 	lda #$f8	;move offscreen two OAMs
 	sta Sprite_Y_Position+4,y	;on the right side
 	sta Sprite_Y_Position+12,y
-PullOfsB:  pla	;pull offscreen bits from stack
-ChkLeftCo: and #%00001000	;check to see if d3 in offscreen bits are set
+PullOfsB:
+	pla	;pull offscreen bits from stack
+ChkLeftCo:
+	and #%00001000	;check to see if d3 in offscreen bits are set
 	beq ExDBlk	;if not set, branch, otherwise move sprites offscreen
 
 MoveColOffscreen:
 	lda #$f8	;move offscreen two OAMs
 	sta Sprite_Y_Position,y	;on the left side (or two rows of enemy on either side
 	sta Sprite_Y_Position+8,y  ;if branched here from enemy graphics handler)
-ExDBlk: rts
-
+ExDBlk:
+	rts
 ;-------------------------------------------------------------------------------------
 ;$00 - used to hold palette bits for attribute byte or relative X position
 
@@ -13631,7 +13743,8 @@ DrawBrickChunks:
 	lda #$03	;otherwise set different palette bits
 	sta $00
 	lda #$84	;and set tile number for brick chunks
-DChunks: ldy Block_SprDataOffset,x	;get OAM data offset
+DChunks:
+	ldy Block_SprDataOffset,x	;get OAM data offset
 	iny	;increment to start with tile bytes in OAM
 	jsr DumpFourSpr	;do sub to dump tile number into all four sprites
 	lda FrameCounter	;get frame counter
@@ -13676,7 +13789,8 @@ DChunks: ldy Block_SprDataOffset,x	;get OAM data offset
 	bcc ChnkOfs	;if d7 not set, branch to last part
 	lda #$f8
 	jsr DumpTwoSpr	;otherwise move top sprites offscreen
-ChnkOfs: lda $00	;if relative position on left side of screen,
+ChnkOfs:
+	lda $00	;if relative position on left side of screen,
 	bpl ExBCDr	;go ahead and leave
 	lda Sprite_X_Position,y	;otherwise compare left-side X coordinate
 	cmp Sprite_X_Position+4,y	;to right-side X coordinate
@@ -13684,8 +13798,8 @@ ChnkOfs: lda $00	;if relative position on left side of screen,
 	lda #$f8	;otherwise move right half of sprites offscreen
 	sta Sprite_Y_Position+4,y
 	sta Sprite_Y_Position+12,y
-ExBCDr:	rts	;leave
-
+ExBCDr:
+	rts	;leave
 ;-------------------------------------------------------------------------------------
 
 DrawFireball:
@@ -13709,9 +13823,9 @@ DrawFirebar:
 	lda #$02	;load value $02 to set palette in attrib byte
 	bcc FireA	;if last bit shifted out was not set, skip this
 	ora #%11000000	;otherwise flip both ways every eight frames
-FireA: sta Sprite_Attributes,y	;store attribute byte and leave
+FireA:
+	sta Sprite_Attributes,y	;store attribute byte and leave
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 ExplosionTiles:
@@ -13765,7 +13879,6 @@ KillFireBall:
 	lda #$00	;clear fireball state to kill it
 	sta Fireball_State,x
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 DrawSmallPlatform:
@@ -13795,7 +13908,8 @@ DrawSmallPlatform:
 	cpx #$20	;if vertical coordinate below status bar,
 	bcs TopSP	;do not mess with it
 	lda #$f8	;otherwise move first three sprites offscreen
-TopSP: jsr DumpThreeSpr	;dump vertical coordinate into Y coordinates
+TopSP:
+	jsr DumpThreeSpr	;dump vertical coordinate into Y coordinates
 	pla		;pull from stack
 	clc
 	adc #$80	;add 128 pixels
@@ -13803,7 +13917,8 @@ TopSP: jsr DumpThreeSpr	;dump vertical coordinate into Y coordinates
 	cpx #$20	;if below status bar (taking wrap into account)
 	bcs BotSP	;then do not change altered coordinate
 	lda #$f8	;otherwise move last three sprites offscreen
-BotSP: sta Sprite_Y_Position+12,y  ;dump vertical coordinate + 128 pixels
+BotSP:
+	sta Sprite_Y_Position+12,y  ;dump vertical coordinate + 128 pixels
 	sta Sprite_Y_Position+16,y  ;into Y coordinates
 	sta Sprite_Y_Position+20,y
 	lda Enemy_OffscreenBits	;get offscreen bits
@@ -13813,22 +13928,24 @@ BotSP: sta Sprite_Y_Position+12,y  ;dump vertical coordinate + 128 pixels
 	lda #$f8	;if d3 was set, move first and
 	sta Sprite_Y_Position,y	;fourth sprites offscreen
 	sta Sprite_Y_Position+12,y
-SOfs:  pla		;move out and back into stack
+SOfs:
+	pla		;move out and back into stack
 	pha
 	and #%00000100	;check d2
 	beq SOfs2
 	lda #$f8	;if d2 was set, move second and
 	sta Sprite_Y_Position+4,y   ;fifth sprites offscreen
 	sta Sprite_Y_Position+16,y
-SOfs2: pla		;get from stack
+SOfs2:
+	pla		;get from stack
 	and #%00000010	;check d1
 	beq ExSPl
 	lda #$f8	;if d1 was set, move third and
 	sta Sprite_Y_Position+8,y   ;sixth sprites offscreen
 	sta Sprite_Y_Position+20,y
-ExSPl: ldx ObjectOffset	;get enemy object offset and leave
+ExSPl:
+	ldx ObjectOffset	;get enemy object offset and leave
 	rts
-
 ;-------------------------------------------------------------------------------------
 
 DrawBubble:
@@ -13847,8 +13964,8 @@ DrawBubble:
 	sta Sprite_Tilenumber,y	;put air bubble tile into OAM data
 	lda #$02
 	sta Sprite_Attributes,y	;set attribute byte
-ExDBub: rts		;leave
-
+ExDBub:
+	rts		;leave
 ;-------------------------------------------------------------------------------------
 ;$00 - used to store player's vertical offscreen bits
 
@@ -13900,7 +14017,8 @@ PlayerGfxHandler:
 	lda FrameCounter
 	lsr		;otherwise check frame counter and branch
 	bcs ExPGH	;to leave on every other frame (when d0 is set)
-CntPl:	lda GameEngineSubroutine	;if executing specific game engine routine,
+CntPl:
+	lda GameEngineSubroutine	;if executing specific game engine routine,
 	cmp #$0b	;branch ahead to some other part
 	beq PlayerKilled
 	lda PlayerChangeSizeFlag	;if grow/shrink flag set
@@ -13923,7 +14041,8 @@ CntPl:	lda GameEngineSubroutine	;if executing specific game engine routine,
 	iny		;otherwise move to next OAM data
 	iny
 	iny
-SwimKT: lda PlayerSize	;check player's size
+SwimKT:
+	lda PlayerSize	;check player's size
 	beq BigKTS	;if big, use first tile
 	lda Sprite_Tilenumber+24,y	;check tile number of seventh/eighth sprite
 	cmp SwimTileRepOffset	;against tile number in player graphics table
@@ -13931,7 +14050,8 @@ SwimKT: lda PlayerSize	;check player's size
 	inx		;otherwise increment X for second tile
 BigKTS: lda SwimKickTileNum,x	;overwrite tile number in sprite 7/8
 	sta Sprite_Tilenumber+24,y	;to animate player's feet when swimming
-ExPGH:	rts		;then leave
+ExPGH:
+	rts		;then leave
 
 FindPlayerAction:
 	jsr ProcessPlayerAction	;find proper offset to graphics table by player's actions
@@ -13966,7 +14086,8 @@ PlayerGfxProcessing:
 	ora Left_Right_Buttons	;check for horizontal speed or left/right button press
 	beq SUpdR	;if no speed or button press, branch using set value in Y
 	dey	;otherwise set to update only three sprite rows
-SUpdR: tya	;save in A for use
+SUpdR:
+	tya	;save in A for use
 	jsr RenderPlayerSub	;in sub, draw player object again
 
 PlayerOffscreenChk:
@@ -13981,26 +14102,27 @@ PlayerOffscreenChk:
 	clc
 	adc #$18	;add 24 bytes to start at bottom row
 	tay	;set as offset here
-PROfsLoop: lda #$f8	;load offscreen Y coordinate just in case
+PROfsLoop:
+	lda #$f8	;load offscreen Y coordinate just in case
 	lsr $00	;shift bit into carry
 	bcc NPROffscr	;if bit not set, skip, do not move sprites
 	jsr DumpTwoSpr	;otherwise dump offscreen Y coordinate into sprite data
-NPROffscr: tya
+NPROffscr:
+	tya
 	sec	;subtract eight bytes to do
 	sbc #$08	;next row up
 	tay
 	dex	;decrement row counter
 	bpl PROfsLoop	;do this until all sprite rows are checked
 	rts	;then we are done!
-
 ;-------------------------------------------------------------------------------------
-
 IntermediatePlayerData:
 	db $58, $01, $00, $60, $ff, $04
 
 DrawPlayer_Intermediate:
 	ldx #$05	;store data into zero page memory
-PIntLoop: lda IntermediatePlayerData,x	;load data to display player as he always
+PIntLoop:
+	lda IntermediatePlayerData,x	;load data to display player as he always
 	sta $02,x	;appears on world/lives display
 	dex
 	bpl PIntLoop	;do this until all data is loaded
@@ -14011,7 +14133,6 @@ PIntLoop: lda IntermediatePlayerData,x	;load data to display player as he always
 	ora #%01000000	;set horizontal flip bit for bottom-right sprite
 	sta Sprite_Attributes+32	;store and leave
 	rts
-
 ;-------------------------------------------------------------------------------------
 ;$00-$01 - used to hold tile numbers, $00 also used to hold upper extent of animation frames
 ;$02 - vertical position
@@ -14135,8 +14256,10 @@ AnimationControl:
 	cmp $00	;compare to upper extent
 	bcc SetAnimC	;if frame control + 1 < upper extent, use as next
 	lda #$00	;otherwise initialize frame control
-SetAnimC: sta PlayerAnimCtrl	;store as new animation frame control
-ExAnimC:  pla	;get offset to graphics table from stack and leave
+SetAnimC:
+	sta PlayerAnimCtrl	;store as new animation frame control
+ExAnimC:
+	pla	;get offset to graphics table from stack and leave
 	rts
 
 GetGfxOffsetAdder:
@@ -14146,7 +14269,8 @@ GetGfxOffsetAdder:
 	clc	;otherwise add eight bytes to offset
 	adc #$08	;for small player
 	tay
-SzOfs:	rts	;go back
+SzOfs:
+	rts	;go back
 
 ChangeSizeOffsetAdder:
 	db $00, $01, $00, $01, $00, $01, $02, $00, $01, $02
@@ -14162,8 +14286,10 @@ HandleChangeSize:
 	bcc CSzNext	;if not there yet, skip ahead to use
 	ldy #$00	;otherwise initialize both grow/shrink flag
 	sty PlayerChangeSizeFlag	;and animation frame control
-CSzNext: sty PlayerAnimCtrl	;store proper frame control
-GorSLog: lda PlayerSize	;get player's size
+CSzNext:
+	sty PlayerAnimCtrl	;store proper frame control
+GorSLog:
+	lda PlayerSize	;get player's size
 	bne ShrinkPlayer	;if player small, skip ahead to next part
 	lda ChangeSizeOffsetAdder,y  ;get offset adder based on frame control as offset
 	ldy #$0f	;load offset for player growing
@@ -14184,7 +14310,8 @@ ShrinkPlayer:
 	lda ChangeSizeOffsetAdder,x	;get what would normally be offset adder
 	bne ShrPlF	;and branch to use offset if nonzero
 	ldy #$01	;otherwise load offset for big player swimming
-ShrPlF: lda PlayerGfxTblOffsets,y	;get offset to graphics table based on offset loaded
+ShrPlF:
+	lda PlayerGfxTblOffsets,y	;get offset to graphics table based on offset loaded
 	rts	;and leave
 
 ChkForPlayerAttrib:
@@ -14201,22 +14328,24 @@ ChkForPlayerAttrib:
 	beq C_S_IGAtt
 	cmp #$c8
 	bne ExPlyrAt	;if none of these, branch to leave
-KilledAtt: lda Sprite_Attributes+16,y
+KilledAtt:
+	lda Sprite_Attributes+16,y
 	and #%00111111	;mask out horizontal and vertical flip bits
 	sta Sprite_Attributes+16,y  ;for third row sprites and save
 	lda Sprite_Attributes+20,y
 	and #%00111111
 	ora #%01000000	;set horizontal flip bit for second
 	sta Sprite_Attributes+20,y  ;sprite in the third row
-C_S_IGAtt: lda Sprite_Attributes+24,y
+C_S_IGAtt:
+	lda Sprite_Attributes+24,y
 	and #%00111111	;mask out horizontal and vertical flip bits
 	sta Sprite_Attributes+24,y  ;for fourth row sprites and save
 	lda Sprite_Attributes+28,y
 	and #%00111111
 	ora #%01000000	;set horizontal flip bit for second
 	sta Sprite_Attributes+28,y  ;sprite in the fourth row
-ExPlyrAt:  rts		;leave
-
+ExPlyrAt:
+	rts		;leave
 ;-------------------------------------------------------------------------------------
 ;$00 - used in adding to get proper offset
 
@@ -14235,7 +14364,8 @@ RelativeFireballPosition:
 	ldy #$00	;set for fireball offsets
 	jsr GetProperObjOffset	;modify X to get proper fireball offset
 	ldy #$02
-RelWOfs: jsr GetObjRelativePosition	;get the coordinates
+RelWOfs:
+	jsr GetObjRelativePosition	;get the coordinates
 	ldx ObjectOffset	;return original offset
 	rts		;leave
 
@@ -14353,7 +14483,6 @@ RunOffscrBitsSubs:
 	lsr
 	sta $00	;store here
 	jmp GetYOffscreenBits
-
 ;--------------------------------
 ;(these apply to these three subsections)
 ;$04 - used to store proper offset
@@ -14371,7 +14500,8 @@ DefaultXOnscreenOfs:
 GetXOffscreenBits:
 	stx $04	;save position in buffer to here
 	ldy #$01	;start with right side of screen
-XOfsLoop: lda ScreenEdge_X_Pos,y	;get pixel coordinate of edge
+XOfsLoop:
+	lda ScreenEdge_X_Pos,y	;get pixel coordinate of edge
 	sec		;get difference between pixel coordinate of edge
 	sbc SprObject_X_Position,x  ;and pixel coordinate of object position
 	sta $07	;store here
@@ -14387,16 +14517,16 @@ XOfsLoop: lda ScreenEdge_X_Pos,y	;get pixel coordinate of edge
 	sta $06
 	lda #$08	;load some other value and execute subroutine
 	jsr DividePDiff
-XLdBData: lda XOffscreenBitsData,x	;get bits here
+XLdBData:
+	lda XOffscreenBitsData,x	;get bits here
 	ldx $04	;reobtain position in buffer
 	cmp #$00	;if bits not zero, branch to leave
 	bne ExXOfsBS
 	dey		;otherwise, do left side of screen now
 	bpl XOfsLoop	;branch if not already done with left side
-ExXOfsBS: rts
-
+ExXOfsBS:
+	rts
 ;--------------------------------
-
 YOffscreenBitsData:
 	db $00, $08, $0c, $0e
 	db $0f, $07, $03, $01
@@ -14411,7 +14541,8 @@ HighPosUnitData:
 GetYOffscreenBits:
 	stx $04	;save position in buffer to here
 	ldy #$01	;start with top of screen
-YOfsLoop: lda HighPosUnitData,y	;load coordinate for edge of vertical unit
+YOfsLoop:
+	lda HighPosUnitData,y	;load coordinate for edge of vertical unit
 	sec
 	sbc SprObject_Y_Position,x   ;subtract from vertical coordinate of object
 	sta $07	;store here
@@ -14427,14 +14558,15 @@ YOfsLoop: lda HighPosUnitData,y	;load coordinate for edge of vertical unit
 	sta $06
 	lda #$04	;load some other value and execute subroutine
 	jsr DividePDiff
-YLdBData: lda YOffscreenBitsData,x	;get offscreen data bits using offset
+YLdBData:
+	lda YOffscreenBitsData,x	;get offscreen data bits using offset
 	ldx $04	;reobtain position in buffer
 	cmp #$00
 	bne ExYOfsBS	;if bits not zero, branch to leave
 	dey	;otherwise, do bottom of the screen now
 	bpl YOfsLoop
-ExYOfsBS: rts
-
+ExYOfsBS:
+	rts
 ;--------------------------------
 
 DividePDiff:
@@ -14449,9 +14581,10 @@ DividePDiff:
 	cpy #$01	;right side of the screen or top?
 	bcs SetOscrO	;if so, branch, use difference / 8 as offset
 	adc $05	;if not, add value to difference / 8
-SetOscrO: tax	;use as offset
-ExDivPD:  rts	;leave
-
+SetOscrO:
+	tax	;use as offset
+ExDivPD:
+	rts	;leave
 ;-------------------------------------------------------------------------------------
 ;$00-$01 - tile numbers
 ;$02 - Y coordinate
@@ -14470,11 +14603,13 @@ DrawSpriteObject:
 	sta Sprite_Tilenumber,y
 	lda #$40	;activate horizontal flip OAM attribute
 	bne SetHFAt	;and unconditionally branch
-NoHFlip: sta Sprite_Tilenumber,y	;store first tile into first sprite
+NoHFlip:
+	sta Sprite_Tilenumber,y	;store first tile into first sprite
 	lda $01	;and second into second sprite
 	sta Sprite_Tilenumber+4,y
 	lda #$00	;clear bit for horizontal flip
-SetHFAt: ora $04	;add other OAM attributes if necessary
+SetHFAt:
+	ora $04	;add other OAM attributes if necessary
 	sta Sprite_Attributes,y	;store sprite attributes
 	sta Sprite_Attributes+4,y
 	lda $02	;now the y coordinates
@@ -14496,12 +14631,9 @@ SetHFAt: ora $04	;add other OAM attributes if necessary
 	inx	;increment offset to return it to the
 	inx	;routine that called this subroutine
 	rts
-
 ;-------------------------------------------------------------------------------------
-
 ;unused space
 	db $ff, $ff, $ff, $ff, $ff, $ff
-
 ;-------------------------------------------------------------------------------------
 
 SoundEngine:
@@ -14509,7 +14641,8 @@ SoundEngine:
 	bne SndOn
 	sta SND_MASTERCTRL_REG	;if so, disable sound and leave
 	rts
-SndOn:	lda #$ff
+SndOn:
+	lda #$ff
 	sta JOYPAD_PORT2	;disable irqs and set frame counter mode???
 	lda #$0f
 	sta SND_MASTERCTRL_REG	;enable first four channels
@@ -14518,7 +14651,8 @@ SndOn:	lda #$ff
 	lda PauseSoundQueue	;if not, check pause sfx queue
 	cmp #$01
 	bne RunSoundSubroutines   ;if queue is empty, skip pause mode routine
-InPause: lda PauseSoundBuffer	;check pause sfx buffer
+InPause:
+	lda PauseSoundBuffer	;check pause sfx buffer
 	bne ContPau
 	lda PauseSoundQueue	;check pause queue
 	beq SkipSoundSubroutines
@@ -14533,20 +14667,25 @@ InPause: lda PauseSoundBuffer	;check pause sfx buffer
 	sta SND_MASTERCTRL_REG	;enable sound again
 	lda #$2a	;store length of sound in pause counter
 	sta Squ1_SfxLenCounter
-PTone1F: lda #$44	;play first tone
+PTone1F:
+	lda #$44	;play first tone
 	bne PTRegC	;unconditional branch
-ContPau: lda Squ1_SfxLenCounter	;check pause length left
+ContPau:
+	lda Squ1_SfxLenCounter	;check pause length left
 	cmp #$24	;time to play second?
 	beq PTone2F
 	cmp #$1e	;time to play first again?
 	beq PTone1F
 	cmp #$18	;time to play second again?
 	bne DecPauC	;only load regs during times, otherwise skip
-PTone2F: lda #$64	;store reg contents and play the pause sfx
-PTRegC:	ldx #$84
+PTone2F:
+	lda #$64	;store reg contents and play the pause sfx
+PTRegC:
+	ldx #$84
 	ldy #$7f
 	jsr PlaySqu1Sfx
-DecPauC: dec Squ1_SfxLenCounter	;decrement pause sfx counter
+DecPauC:
+	dec Squ1_SfxLenCounter	;decrement pause sfx counter
 	bne SkipSoundSubroutines
 	lda #$00	;disable sound if in pause mode and
 	sta SND_MASTERCTRL_REG	;not currently playing the pause sfx
@@ -14555,7 +14694,8 @@ DecPauC: dec Squ1_SfxLenCounter	;decrement pause sfx counter
 	bne SkipPIn
 	lda #$00	;clear pause mode to allow game sounds again
 	sta PauseModeFlag
-SkipPIn: lda #$00	;clear pause sfx buffer
+SkipPIn:
+	lda #$00	;clear pause sfx buffer
 	sta PauseSoundBuffer
 	beq SkipSoundSubroutines
 
@@ -14581,12 +14721,13 @@ SkipSoundSubroutines:
 	inc DAC_Counter	;increment and check counter
 	cpy #$30
 	bcc StrWave	;if not there yet, just store it
-NoIncDAC: tya
+NoIncDAC:
+	tya
 	beq StrWave	;if we are at zero, do not decrement
 	dec DAC_Counter	;decrement counter
-StrWave:  sty SND_DELTA_REG+1	;store into DMC load register (??)
+StrWave:
+	sty SND_DELTA_REG+1	;store into DMC load register (??)
 	rts	;we are done here
-
 ;--------------------------------
 
 Dump_Squ1_Regs:
@@ -14608,7 +14749,8 @@ Dump_Freq_Regs:
 	lda FreqRegLookupTbl,y	;second byte goes into 3 MSB plus extra bit for
 	ora #%00001000	;length counter
 	sta SND_REGISTER+3,x
-NoTone: rts
+NoTone:
+	rts
 
 Dump_Sq2_Regs:
 	stx SND_SQUARE2_REG	;dump the contents of X and Y into square 2's control regs
@@ -14625,9 +14767,7 @@ SetFreq_Squ2:
 SetFreq_Tri:
 	ldx #$08	;set frequency reg offset for triangle sound channel
 	bne Dump_Freq_Regs	;unconditional branch
-
 ;--------------------------------
-
 SwimStompEnvelopeData:
 	db $9f, $9b, $98, $96, $95, $94, $92, $90
 	db $90, $9a, $97, $95, $93, $92
@@ -14661,11 +14801,14 @@ ContinueSndJump:
 	ldx #$5f	;load second part
 	ldy #$f6
 	bne DmpJpFPS	;unconditional branch
-N2Prt:	cmp #$20	;check for third part
+N2Prt:
+	cmp #$20	;check for third part
 	bne DecJpFPS
 	ldx #$48	;load third part
-FPS2nd:	ldy #$bc	;the flagpole slide sound shares part of third part
-DmpJpFPS: jsr Dump_Squ1_Regs
+FPS2nd:
+	ldy #$bc	;the flagpole slide sound shares part of third part
+DmpJpFPS:
+	jsr Dump_Squ1_Regs
 	bne DecJpFPS	;unconditional branch outta here
 
 PlayFireballThrow:
@@ -14676,7 +14819,8 @@ PlayFireballThrow:
 PlayBump:
 	lda #$0a	;load length of sfx and reg contents for bump sound
 	ldy #$93
-Fthrow:	ldx #$9e	;the fireball sound shares reg contents with the bump sound
+Fthrow:
+	ldx #$9e	;the fireball sound shares reg contents with the bump sound
 	sta Squ1_SfxLenCounter
 	lda #$0c	;load offset for bump sound
 	jsr PlaySqu1Sfx
@@ -14687,8 +14831,8 @@ ContinueBumpThrow:
 	bne DecJpFPS
 	lda #$bb	;load second part directly
 	sta SND_SQUARE1_REG+1
-DecJpFPS: bne BranchToDecLength1  ;unconditional branch
-
+DecJpFPS:
+	bne BranchToDecLength1  ;unconditional branch
 
 Square1SfxHandler:
 	ldy Square1SoundQueue   ;check for sfx in queue
@@ -14728,7 +14872,8 @@ CheckSfx1Buffer:
 	bcs ContinueBumpThrow	;fireball throw
 	lsr
 	bcs DecrementSfx1Length	;slide flagpole
-ExS1H: rts
+ExS1H:
+	rts
 
 PlaySwimStomp:
 	lda #$0e	;store length of swim/stomp sound
@@ -14767,8 +14912,10 @@ ContinueSmackEnemy:
 	sta SND_SQUARE1_REG+2	;in the smack enemy sound
 	lda #$9f
 	bne SmTick
-SmSpc:	lda #$90	;this creates spaces in the sound, giving it its distinct noise
-SmTick: sta SND_SQUARE1_REG
+SmSpc:
+	lda #$90	;this creates spaces in the sound, giving it its distinct noise
+SmTick:
+	sta SND_SQUARE1_REG
 
 DecrementSfx1Length:
 	dec Squ1_SfxLenCounter	;decrement length of sfx
@@ -14781,7 +14928,8 @@ StopSquare1Sfx:
 	stx SND_MASTERCTRL_REG
 	ldx #$0f
 	stx SND_MASTERCTRL_REG
-ExSfx1: rts
+ExSfx1:
+	rts
 
 PlayPipeDownInj:
 	lda #$2f	;load length of pipedown sound
@@ -14799,10 +14947,9 @@ ContinuePipeDownInj:
 	ldx #$9a
 	lda #$44
 	jsr PlaySqu1Sfx
-NoPDwnL: jmp DecrementSfx1Length
-
+NoPDwnL:
+	jmp DecrementSfx1Length
 ;--------------------------------
-
 ExtraLifeFreqData:
 	db $58, $02, $54, $56, $4e, $44
 
@@ -14841,7 +14988,8 @@ ContinueCGrabTTick:
 	bne N2Tone
 	lda #$54	;if so, load the tone directly into the reg
 	sta SND_SQUARE2_REG+2
-N2Tone: bne DecrementSfx2Length
+N2Tone:
+	bne DecrementSfx2Length
 
 PlayBlast:
 	lda #$20	;load length of fireworks/gunfire sound
@@ -14856,7 +15004,8 @@ ContinueBlast:
 	bne DecrementSfx2Length
 	ldy #$93	;load second part reg contents then
 	lda #$18
-SBlasJ: bne BlstSJp	;unconditional branch to load rest of reg contents
+SBlasJ:
+	bne BlstSJp	;unconditional branch to load rest of reg contents
 
 PlayPowerUpGrab:
 	lda #$36	;load length of power-up grab sound
@@ -14887,7 +15036,8 @@ StopSquare2Sfx:
 	stx SND_MASTERCTRL_REG
 	ldx #$0f
 	stx SND_MASTERCTRL_REG
-ExSfx2: rts
+ExSfx2:
+	rts
 
 Square2SfxHandler:
 	lda Square2SoundBuffer ;special handling for the 1-up sound to keep it
@@ -14930,7 +15080,8 @@ CheckSfx2Buffer:
 	bcs ContinuePowerUpGrab	;power-up grab
 	lsr
 	bcs ContinueExtraLife	;1-up
-ExS2H:	rts
+ExS2H:
+	rts
 
 Cont_CGrab_TTick:
 	jmp ContinueCGrabTTick
@@ -14943,7 +15094,8 @@ PlayBowserFall:
 	sta Squ2_SfxLenCounter
 	ldy #$c4	;load contents of reg for bowser defeat sound
 	lda #$18
-BlstSJp: bne PBFRegs
+BlstSJp:
+	bne PBFRegs
 
 ContinueBowserFall:
 	lda Squ2_SfxLenCounter   ;check for almost near the end
@@ -14951,8 +15103,10 @@ ContinueBowserFall:
 	bne DecrementSfx2Length
 	ldy #$a4	;if so, load the rest of reg contents for bowser defeat sound
 	lda #$5a
-PBFRegs:  ldx #$9f	;the fireworks/gunfire sound shares part of reg contents here
-EL_LRegs: bne LoadSqu2Regs	;this is an unconditional branch outta here
+PBFRegs:
+	ldx #$9f	;the fireworks/gunfire sound shares part of reg contents here
+EL_LRegs:
+	bne LoadSqu2Regs	;this is an unconditional branch outta here
 
 PlayExtraLife:
 	lda #$30	;load length of 1-up sound
@@ -14961,7 +15115,8 @@ PlayExtraLife:
 ContinueExtraLife:
 	lda Squ2_SfxLenCounter
 	ldx #$03	;load new tones only every eight frames
-DivLLoop: lsr
+DivLLoop:
+	lsr
 	bcs JumpToDecLength2	;if any bits set here, branch to dec the length
 	dex
 	bne DivLLoop	;do this until all bits checked, if none set, continue
@@ -15000,7 +15155,6 @@ ContinueGrowItems:
 
 StopGrowItems:
 	jmp EmptySfx2Buffer	;branch to stop playing sounds
-
 ;--------------------------------
 
 BrickShatterFreqData:
@@ -15032,7 +15186,8 @@ DecrementSfx3Length:
 	sta SND_NOISE_REG
 	lda #$00
 	sta NoiseSoundBuffer
-ExSfx3: rts
+ExSfx3:
+	rts
 
 NoiseSfxHandler:
 	ldy NoiseSoundQueue	;check for sfx in queue
@@ -15050,7 +15205,8 @@ CheckNoiseBuffer:
 	bcs ContinueBrickShatter  ;brick shatter
 	lsr
 	bcs ContinueBowserFlame	;bowser flame
-ExNH:	rts
+ExNH:
+	rts
 
 PlayBowserFlame:
 	lda #$40	;load length of bowser flame sound
@@ -15063,7 +15219,6 @@ ContinueBowserFlame:
 	ldx #$0f	;load reg contents of bowser flame sound
 	lda BowserFlameEnvData-1,y
 	bne PlayNoiseSfx	;unconditional branch here
-
 ;--------------------------------
 
 ContinueMusic:
@@ -15085,7 +15240,8 @@ LoadEventMusic:
 	bne NoStopSfx	;if not, jump elsewhere
 	jsr StopSquare1Sfx	;stop sfx in square 1 and 2
 	jsr StopSquare2Sfx	;but clear only square 1's sfx buffer
-NoStopSfx: ldx AreaMusicBuffer
+NoStopSfx:
+	ldx AreaMusicBuffer
 	stx AreaMusicBuffer_Alt	;save current area music buffer to be re-obtained later
 	ldy #$00
 	sty NoteLengthTblAdder	;default value for additional length byte offset
@@ -15100,8 +15256,10 @@ LoadAreaMusic:
 	cmp #$04	;is it underground music?
 	bne NoStop1	;no, do not stop square 1 sfx
 	jsr StopSquare1Sfx
-NoStop1: ldy #$10	;start counter used only by ground level music
-GMLoopB: sty GroundMusicHeaderOfs
+NoStop1:
+	ldy #$10	;start counter used only by ground level music
+GMLoopB:
+	sty GroundMusicHeaderOfs
 
 HandleAreaMusicLoopB:
 	ldy #$00	;clear event music buffer
@@ -15170,7 +15328,8 @@ EndOfMusicData:
 	bne NotTRO
 	lda AreaMusicBuffer_Alt	;load previously saved contents of primary buffer
 	bne MusicLoopBack	;and start playing the song again if there is one
-NotTRO: and #VictoryMusic	;check for victory music (the only secondary that loops)
+NotTRO:
+	and #VictoryMusic	;check for victory music (the only secondary that loops)
 	bne VictoryMLoopBack
 	lda AreaMusicBuffer	;check primary buffer for any music except pipe intro
 	and #%01011111
@@ -15203,9 +15362,11 @@ Squ2NoteHandler:
 	jsr SetFreq_Squ2	;no, then play the note
 	beq Rest	;check to see if note is rest
 	jsr LoadControlRegs	;if not, load control regs for square 2
-Rest:	sta Squ2_EnvelopeDataCtrl	;save contents of A
+Rest:
+	sta Squ2_EnvelopeDataCtrl	;save contents of A
 	jsr Dump_Sq2_Regs	;dump X and Y into square 2 control regs
-SkipFqL1: lda Squ2_NoteLenBuffer	;save length in square 2 note counter
+SkipFqL1:
+	lda Squ2_NoteLenBuffer	;save length in square 2 note counter
 	sta Squ2_NoteLenCounter
 
 MiscSqu2MusicTasks:
@@ -15217,7 +15378,8 @@ MiscSqu2MusicTasks:
 	ldy Squ2_EnvelopeDataCtrl  ;check for contents saved from LoadControlRegs
 	beq NoDecEnv1
 	dec Squ2_EnvelopeDataCtrl  ;decrement unless already zero
-NoDecEnv1: jsr LoadEnvelopeData	;do a load of envelope data to replace default
+NoDecEnv1:
+	jsr LoadEnvelopeData	;do a load of envelope data to replace default
 	sta SND_SQUARE2_REG	;based on offset set by first load unless playing
 	ldx #$7f	;death music or d4 set on secondary buffer
 	stx SND_SQUARE2_REG+1
@@ -15250,7 +15412,8 @@ Squ1NoteHandler:
 	jsr SetFreq_Squ1	;play the note
 	beq SkipCtrlL
 	jsr LoadControlRegs
-SkipCtrlL: sta Squ1_EnvelopeDataCtrl  ;save envelope offset
+SkipCtrlL:
+	sta Squ1_EnvelopeDataCtrl  ;save envelope offset
 	jsr Dump_Squ1_Regs
 
 MiscSqu1MusicTasks:
@@ -15262,12 +15425,15 @@ MiscSqu1MusicTasks:
 	ldy Squ1_EnvelopeDataCtrl	;check saved envelope offset
 	beq NoDecEnv2
 	dec Squ1_EnvelopeDataCtrl	;decrement unless already zero
-NoDecEnv2:	jsr LoadEnvelopeData	;do a load of envelope data
+NoDecEnv2:
+	jsr LoadEnvelopeData	;do a load of envelope data
 	sta SND_SQUARE1_REG	;based on offset set by first load
-DeathMAltReg: lda AltRegContentFlag	;check for alternate control reg data
+DeathMAltReg:
+	lda AltRegContentFlag	;check for alternate control reg data
 	bne DoAltLoad
 	lda #$7f	;load this value if zero, the alternate value
-DoAltLoad:	sta SND_SQUARE1_REG+1	;if nonzero, and let's move on
+DoAltLoad:
+	sta SND_SQUARE1_REG+1	;if nonzero, and let's move on
 
 HandleTriangleMusic:
 	lda MusicOffset_Triangle
@@ -15297,7 +15463,8 @@ TriNoteHandler:
 	lda AreaMusicBuffer	;check primary buffer for water or castle level music
 	and #%00001010
 	beq HandleNoiseMusic	;if playing any other primary, or death or d4, go on to noise routine
-NotDOrD4: txa	;if playing water or castle music or any secondary
+NotDOrD4:
+	txa	;if playing water or castle music or any secondary
 	cmp #$12	;besides death music or d4 set, check length of note
 	bcs LongN
 	lda EventMusicBuffer	;check for win castle music again if not playing a long note
@@ -15305,9 +15472,11 @@ NotDOrD4: txa	;if playing water or castle music or any secondary
 	beq MediN
 	lda #$0f	;load value $0f if playing the win castle music and playing a short
 	bne LoadTriCtrlReg	;note, load value $1f if playing water or castle level music or any
-MediN:	lda #$1f	;secondary besides death and d4 except win castle or win castle and playing
+MediN:
+	lda #$1f	;secondary besides death and d4 except win castle or win castle and playing
 	bne LoadTriCtrlReg	;a short note, and load value $ff if playing a long note on water, castle
-LongN:	lda #$ff	;or any secondary (including win castle) except death and d4
+LongN:
+	lda #$ff	;or any secondary (including win castle) except death and d4
 
 LoadTriCtrlReg:
 	sta SND_TRIANGLE_REG	;save final contents of A into control reg for triangle
@@ -15391,13 +15560,16 @@ LoadControlRegs:
 	beq NotECstlM
 	lda #$04	;this value is only used for win castle music
 	bne AllMus	;unconditional branch
-NotECstlM: lda AreaMusicBuffer
+NotECstlM:
+	lda AreaMusicBuffer
 	and #%01111101	;check primary buffer for water music
 	beq WaterMus
 	lda #$08	;this is the default value for all other music
 	bne AllMus
-WaterMus:  lda #$28	;this value is used for water music and all other event music
-AllMus:	ldx #$82	;load contents of other sound regs for square 2
+WaterMus:
+	lda #$28	;this value is used for water music and all other event music
+AllMus:
+	ldx #$82	;load contents of other sound regs for square 2
 	ldy #$7f
 	rts
 
@@ -15418,7 +15590,6 @@ LoadUsualEnvData:
 LoadWaterEventMusEnvData:
 	lda WaterEventMusEnvData,y	;load data from offset for water music and all other event music
 	rts
-
 ;--------------------------------
 
 ;music header offsets
@@ -15483,9 +15654,7 @@ GroundLevelPart4AHdr: db $18, <GroundM_P4AData, >GroundM_P4AData, $18, $10, $7a
 GroundLevelPart4BHdr: db $18, <GroundM_P4BData, >GroundM_P4BData, $19, $0f, $54
 GroundLevelPart4CHdr: db $18, <GroundM_P4CData, >GroundM_P4CData, $1e, $12, $2b
 DeathMusHdr:	db $18, <DeathMusData, >DeathMusData, $1e, $0f, $2d
-
 ;--------------------------------
-
 ;MUSIC DATA
 ;square 2/triangle format
 ;d7 - length byte flag (0-note, 1-length)
@@ -15805,18 +15974,15 @@ BowserFlameEnvData:
 BrickShatterEnvData:
 	db $15, $16, $16, $17, $17, $18, $19, $19
 	db $1a, $1a, $1c, $1d, $1d, $1e, $1e, $1f
-
 ;-------------------------------------------------------------------------------------
 ;INTERRUPT VECTORS
-
 	dw NonMaskableInterrupt
 	dw PRGROM_Start
 	dw $fff0  ;unused
-
-PRGROM_End
+PRGROM_End:
 
 	align	$8000	;alignment for CHR bank
 
-CHRROM_Start
+CHRROM_Start:
 	incbin	chr.bin
-CHRROM_End
+CHRROM_End:
